@@ -1,0 +1,47 @@
+// Floor 1's layout: the areas (Ashgate, the Greyfields, the Red Hollow, the Sunken Stair, the
+// Hall), the landmarks and the labyrinth.
+
+const WORLD = { x0: -40, z0: -118, x1: 246, z1: 56 };
+const TOWN = { x0: -32, z0: -22, x1: 18, z1: 22 };        // Ashgate, inside its palisade
+const FIELD = { x0: -34, z0: -62, x1: 118, z1: 52 };      // the Greyfields (the town sits inside)
+const HOLLOW = { x0: 48, z0: -114, x1: 110, z1: -66 };    // the Red Hollow, the PvP zone
+const RIDGE = { z0: -66, z1: -62, x0: 46, x1: 112, gaps: [[58, 66], [90, 98]] };
+const SPAWN = { x: -8, z: 4 };          // you wake here
+const CRYSTAL = { x: -8, z: -2 };       // the Waystone in Ashgate
+const BOARD = { x: 2, z: -4 };          // the quest board
+const FORGE = { x: 7, z: 12 };
+const DOORSTONE = { x: 191, z: 5 };     // the Waystone at the Warden's door
+const HALL = { x: 216, z: 0, r: 15 };   // Warden's Hall
+const DOOR = { x0: 199.5, x1: 202.5, z0: -4, z1: 4 };
+const STAIRS = { x: 228, z: 0 };
+const LANTERN_WALL = { x0: -24, x1: 4, z: -19 };
+const PATH = [[18, 0], [40, 2], [62, 0], [84, -6], [104, -12], [121, -16]];
+
+// The labyrinth, the Sunken Stair: '#' wall, '.' floor. Cell = 4 units, from (120, -44).
+const CELL = 4, MAZE_X0 = 120, MAZE_Z0 = -44;
+const MAZE = [
+  '####################',
+  '######......##.....#',
+  '###................#',
+  '###................#',
+  '###..#......##.....#',
+  '#.....########.....#',
+  '......########.....#',
+  '......##########..##',
+  '#.....##########..##',
+  '###########........#',
+  '###########.........',
+  '###########.........',
+  '###########........#',
+  '####################',
+];
+
+const AREA_INFO = {
+  town: { name: 'Ashgate', sub: 'Floor 1 · the last safe town at the foot of the tower', color: '#f3e6c4' },
+  field: { name: 'The Greyfields', sub: 'Floor 1 · wolves, spitters and worse', color: '#e6dcc0' },
+  hollow: { name: 'The Red Hollow', sub: 'PvP zone · rogue players take what you carry · what you pick up here, you can lose', color: '#ff8a78' },
+  labyrinth: { name: 'The Sunken Stair', sub: "The labyrinth to the Warden's door", color: '#d8d0c0' },
+  hall: { name: "Warden's Hall", sub: 'The floor boss waits. Dodge the red.', color: '#ff9f6a' },
+};
+
+export { WORLD, TOWN, FIELD, HOLLOW, RIDGE, SPAWN, CRYSTAL, BOARD, FORGE, DOORSTONE, HALL, DOOR, STAIRS, LANTERN_WALL, PATH, MAZE_X0, CELL, MAZE_Z0, MAZE, AREA_INFO };
