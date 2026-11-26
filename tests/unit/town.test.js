@@ -5,8 +5,8 @@ import { describe, it, expect } from 'vitest';
 import { setSeed } from '../../src/math.js';
 import { circleFree, isSolid, areaAt, townSpot } from '../../src/game/world/grid.js';
 import '../../src/game/world/decor.js';
-import { WORLD, TOWN, GATE, PLAZA, MEMORIAL, SANCTUARY, SPAWN, CRYSTAL, BOARD, FORGE, LANTERN_WALL, WELL, DOORSTONE } from '../../src/game/world/floor1.js';
-import { HOUSES } from '../../src/game/world/town.js';
+import { WORLD, TOWN, GATE, PLAZA, MEMORIAL, FORECOURT, AVENUE, SANCTUARY, GARDEN, WELL_YARD, MARKET, FORGE_YARD, GATE_SQUARE, SPAWN, CRYSTAL, BOARD, FORGE, LANTERN_WALL, WELL, DOORSTONE } from '../../src/game/world/floor1.js';
+import { FRAME, HOUSES, PILLARS, PYLONS } from '../../src/game/world/town.js';
 import { BOT_ROSTER } from '../../src/game/bots/roster.js';
 
 function reachableFromSpawn(r) {
@@ -75,6 +75,42 @@ describe('Ashgate', () => {
     expect(areaAt(mid(LANTERN_WALL.x0, LANTERN_WALL.x1), LANTERN_WALL.z + 2)).toBe('town');
     expect(areaAt(TOWN.x0 + 2, TOWN.z0 + 1)).toBe('town');
     expect(areaAt(TOWN.x1 + 6, 0)).toBe('field');
+  });
+
+  it('what is drawn solid is solid: piers, towers, columns, the forge wall, the board, the well', () => {
+    const hx = mid(MEMORIAL.x0, MEMORIAL.x1), S = SANCTUARY;
+    const spots = {
+      'the Hall portal, west pier': [hx - MEMORIAL.door - 1, MEMORIAL.z1 + 1], 'the Hall portal, east pier': [hx + MEMORIAL.door + 1, MEMORIAL.z1 + 1],
+      'the Sanctuary west tower': [S.x0 + 2.5, S.z1 - 2.5], 'the Sanctuary east tower': [S.x1 - 2.5, S.z1 - 2.5],
+      'the forge hood wall': [FORGE.x + 0.6, FORGE.z - 1.3], 'the quest board': [BOARD.x, BOARD.z],
+      'the well, west post': [WELL.x - 0.85, WELL.z], 'the well, east post': [WELL.x + 0.85, WELL.z],
+      'the spire base, a corner': [PLAZA.x + 1.5, PLAZA.z - 1.5],
+    };
+    for (const [name, [x, z]] of Object.entries(spots)) expect(isSolid(x, z), name).toBe(true);
+    for (const p of PYLONS) expect(isSolid(p.x, p.z), `pier at ${p.x.toFixed(1)}, ${p.z.toFixed(1)}`).toBe(true);
+    for (const p of PILLARS.filter(q => q.on)) expect(isSolid(p.x, p.z), `column ${p.i}`).toBe(true);
+  });
+
+  it('you can walk right up to the lantern wall', () => {
+    expect(circleFree(mid(LANTERN_WALL.x0, LANTERN_WALL.x1), LANTERN_WALL.z + 0.55, 0.5)).toBe(true);
+  });
+
+  it('is one street: nothing in town is walkable off the route from the plaza to the gate', () => {
+    const route = [FRAME, FORECOURT, MEMORIAL, AVENUE, GARDEN, WELL_YARD, MARKET, FORGE_YARD, GATE_SQUARE];
+    const onRoute = (x, z) => route.some(r => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1);
+    const stray = [];
+    for (let z = TOWN.z0; z < TOWN.z1; z++) for (let x = TOWN.x0; x < TOWN.x1; x++)
+      if (reach(x + 0.5, z + 0.5) && !onRoute(x + 0.5, z + 0.5)) stray.push(`${x},${z}`);
+    expect(stray).toEqual([]);
+  });
+
+  it('every part of the route can be reached', () => {
+    const parts = { 'the forecourt': FORECOURT, 'the avenue': AVENUE, 'the garden': { ...GARDEN, z0: SANCTUARY.z1, x1: SANCTUARY.x0 }, 'the well yard': WELL_YARD, 'the market': MARKET, 'the forge yard': FORGE_YARD, 'the gate square': GATE_SQUARE };
+    for (const [name, r] of Object.entries(parts)) {
+      let any = false;
+      for (let z = r.z0; z < r.z1 && !any; z++) for (let x = r.x0; x < r.x1 && !any; x++) any = reach(x + 0.5, z + 0.5);
+      expect(any, name).toBe(true);
+    }
   });
 
   it('fills the blocks with houses that never overlap', () => {

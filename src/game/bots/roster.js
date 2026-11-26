@@ -6,14 +6,14 @@ import { rng } from '../../math.js';
 import { nid, state } from '../state.js';
 
 const BOT_ROSTER = [
-  { name: 'Hale', cls: 'vanguard', mode: 'town', x: -36, z: 12 },     // Ashgate: the plaza, the market, the Hall of Lanterns
-  { name: 'Orrin', cls: 'mender', mode: 'town', x: -50, z: -10 },
-  { name: 'Tamsin', cls: 'ranger', mode: 'town', x: -30, z: 4 },
-  { name: 'Pell', cls: 'vanguard', mode: 'town', x: -44, z: -48 },
-  { name: 'Juno', cls: 'mender', mode: 'town', x: 0, z: 0 },
-  { name: 'Bram', cls: 'vanguard', mode: 'lfg', x: -34, z: -4 },
-  { name: 'Kestrel', cls: 'ranger', mode: 'lfg', x: -52, z: 10 },
-  { name: 'Lio', cls: 'mender', mode: 'lfg', x: -46, z: 14 },
+  { name: 'Hale', cls: 'vanguard', mode: 'town', x: -66, z: 12 },     // Ashgate: the plaza, the Hall's forecourt, the avenue and the market
+  { name: 'Orrin', cls: 'mender', mode: 'town', x: -80, z: -10 },
+  { name: 'Tamsin', cls: 'ranger', mode: 'town', x: -30, z: 1 },
+  { name: 'Pell', cls: 'vanguard', mode: 'town', x: -84, z: -27.5 },    // in the Hall's forecourt, not under its roof, where his name would float over it
+  { name: 'Juno', cls: 'mender', mode: 'town', x: 2, z: 0 },
+  { name: 'Bram', cls: 'vanguard', mode: 'lfg', x: -64, z: -4 },
+  { name: 'Kestrel', cls: 'ranger', mode: 'lfg', x: -82, z: 10 },
+  { name: 'Lio', cls: 'mender', mode: 'lfg', x: -76, z: 14 },
   { name: 'Mira', cls: 'ranger', mode: 'rescue', x: 52, z: 12, pack: 'r1' },
   { name: 'Sable', cls: 'mender', mode: 'rescue', x: 98, z: -34, pack: 'r2' },
   { name: 'Doran', cls: 'vanguard', mode: 'rescue', x: 156, z: -34, pack: 'r3' },

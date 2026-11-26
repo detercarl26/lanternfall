@@ -17,8 +17,9 @@ function M(color, o = {}) { // a cached standard material
 
 // The see-through cut: anything built with cutMat that stands between the camera and the hero is
 // cut away in a circle round the hero (dithered at the rim), so a street never hides you. frame.js
-// moves CUT every frame; r 0 turns it off. Shadows are untouched: a cut wall still casts one.
-const CUT = { hero: { value: new THREE.Vector3() }, cam: { value: new THREE.Vector3() }, r: { value: 0 } };
+// moves CUT every frame; r 0 turns it off. Anything within `near` of the camera goes too, so the
+// lens never sits inside a tower top. Shadows are untouched: a cut wall still casts one.
+const CUT = { hero: { value: new THREE.Vector3() }, cam: { value: new THREE.Vector3() }, r: { value: 0 }, near: { value: 5 } };
 const CUT_VERT = `#include <project_vertex>
   vec4 cutW = vec4(transformed, 1.0);
   #ifdef USE_INSTANCING
@@ -28,9 +29,12 @@ const CUT_VERT = `#include <project_vertex>
 const CUT_FRAG = `void main() {
   vec3 cutSeg = cutHero - cutCam;
   float cutT = dot(vCutW - cutCam, cutSeg) / max(dot(cutSeg, cutSeg), 1e-4);
-  if (cutR > 0.0 && cutT > 0.0 && cutT < 0.97 && vCutW.y > 0.3) {
-    float cutK = length(vCutW - (cutCam + cutSeg * cutT)) / (cutR * cutT);
-    if (cutK < 0.78 || (cutK < 1.0 && mod(floor(gl_FragCoord.x) + floor(gl_FragCoord.y), 2.0) < 1.0)) discard;
+  if (cutR > 0.0 && vCutW.y > 0.3) {
+    if (distance(vCutW, cutCam) < cutNear) discard;
+    if (cutT > 0.0 && cutT < 0.97) {
+      float cutK = length(vCutW - (cutCam + cutSeg * cutT)) / (cutR * cutT);
+      if (cutK < 0.78 || (cutK < 1.0 && mod(floor(gl_FragCoord.x) + floor(gl_FragCoord.y), 2.0) < 1.0)) discard;
+    }
   }`;
 function cutMat(color, o = {}) {
   const key = 'cut' + color + JSON.stringify(o);
@@ -38,9 +42,9 @@ function cutMat(color, o = {}) {
   const m = new THREE.MeshStandardMaterial({ color, roughness: o.rough ?? 0.9, metalness: o.metal ?? 0.04,
     emissive: o.em ?? 0x000000, emissiveIntensity: o.ei ?? 1, side: o.side ?? THREE.FrontSide, flatShading: !!o.flat });
   m.onBeforeCompile = sh => {
-    sh.uniforms.cutHero = CUT.hero; sh.uniforms.cutCam = CUT.cam; sh.uniforms.cutR = CUT.r;
+    sh.uniforms.cutHero = CUT.hero; sh.uniforms.cutCam = CUT.cam; sh.uniforms.cutR = CUT.r; sh.uniforms.cutNear = CUT.near;
     sh.vertexShader = 'varying vec3 vCutW;\n' + sh.vertexShader.replace('#include <project_vertex>', CUT_VERT);
-    sh.fragmentShader = 'varying vec3 vCutW;\nuniform vec3 cutHero;\nuniform vec3 cutCam;\nuniform float cutR;\n' + sh.fragmentShader.replace('void main() {', CUT_FRAG);
+    sh.fragmentShader = 'varying vec3 vCutW;\nuniform vec3 cutHero;\nuniform vec3 cutCam;\nuniform float cutR;\nuniform float cutNear;\n' + sh.fragmentShader.replace('void main() {', CUT_FRAG);
   };
   m.customProgramCacheKey = () => 'cut';
   MATS.set(key, m); return m;

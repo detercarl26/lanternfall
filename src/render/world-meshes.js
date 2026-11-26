@@ -2,7 +2,7 @@
 
 import * as THREE from 'three';
 import { CHEAP } from '../platform/page.js';
-import { WORLD, FIELD, HOLLOW, RIDGE, DOORSTONE, HALL, STAIRS, PATH, CELL, MAZE_X0, MAZE_Z0, MAZE } from '../game/world/floor1.js';
+import { WORLD, TOWN, FIELD, HOLLOW, RIDGE, DOORSTONE, HALL, STAIRS, PATH, CELL, MAZE_X0, MAZE_Z0, MAZE } from '../game/world/floor1.js';
 import { GW, GH } from '../game/world/grid.js';
 import { wrng, TREES, ROCKS, TUFTS, RUINS } from '../game/world/decor.js';
 import { M, glowMat, TEX } from './materials.js';
@@ -61,7 +61,8 @@ function buildWorld(scene) {
   // The edge of the floor: boulders along every border, so the walls read as cliffs.
   const edge = [];
   const runEdge = (x0, z0, x1, z1) => { const n = Math.ceil(Math.hypot(x1 - x0, z1 - z0) / 3.2); for (let i = 0; i <= n; i++) edge.push([x0 + (x1 - x0) * i / n, z0 + (z1 - z0) * i / n]); };
-  runEdge(FIELD.x0 + 3, FIELD.z1 + 1.5, FIELD.x1 + 1.5, FIELD.z1 + 1.5);   // the field's west edge is Ashgate's wall
+  runEdge(FIELD.x0 + 3, FIELD.z1 + 1.5, FIELD.x1 + 1.5, FIELD.z1 + 1.5);
+  runEdge(FIELD.x0 - 1.5, TOWN.z1 + 4, FIELD.x0 - 1.5, FIELD.z1 + 1.5);     // the field's west edge: Ashgate's wall, then boulders past its south corner
   runEdge(FIELD.x0 + 1, FIELD.z0 - 1.5, RIDGE.gaps[0][0], FIELD.z0 - 1.5);
   runEdge(RIDGE.gaps[0][1], FIELD.z0 - 1.5, RIDGE.gaps[1][0], FIELD.z0 - 1.5);
   runEdge(RIDGE.gaps[1][1], FIELD.z0 - 1.5, FIELD.x1 + 1.5, FIELD.z0 - 1.5);

@@ -3,8 +3,8 @@
 
 import { rng, dist, turnToward } from '../../math.js';
 import { state } from '../state.js';
-import { WORLD, TOWN, FIELD, HOLLOW, RIDGE, GATE, PLAZA, MEMORIAL, SANCTUARY, WELL, SPAWN, CRYSTAL, FORGE, HALL, DOOR, LANTERN_WALL, PATH, MAZE_X0, CELL, MAZE_Z0, MAZE } from './floor1.js';
-import { inPlazaWay, TOWERS, HOUSES, STALLS, COLUMNS, TABLES, HEARTH, TREES, CYPRESS, HEDGES, LAMPS, FOLK } from './town.js';
+import { WORLD, TOWN, FIELD, HOLLOW, RIDGE, GATE, PLAZA, MEMORIAL, SANCTUARY, WELL, SPAWN, CRYSTAL, BOARD, FORGE, HALL, DOOR, LANTERN_WALL, PATH, MAZE_X0, CELL, MAZE_Z0, MAZE } from './floor1.js';
+import { FRAME, inPlazaWay, PILLARS, PYLONS, TOWERS, HOUSES, STALLS, COLUMNS, TABLES, HEARTH, TREES, CYPRESS, HEDGES, LAMPS, FOLK } from './town.js';
 
 const GW = WORLD.x1 - WORLD.x0, GH = WORLD.z1 - WORLD.z0;
 const solid = new Uint8Array(GW * GH).fill(1);
@@ -81,33 +81,41 @@ function distToPath(x, z) {
   }
 })();
 
-// Ashgate: open ground inside the walls, the east gate the one way out; then everything standing in it
+// Ashgate: open ground inside the walls, the east gate the one way out; then everything standing in it.
+// Each footprint matches what town-meshes.js draws, to whole cells where it can.
 function carveTown() {
+  const block = (x0, z0, x1, z1) => setRect(x0, z0, x1, z1, 1);
   setRect(TOWN.x0, TOWN.z0, TOWN.x1, TOWN.z1, 0);
   setRect(TOWN.x1, GATE.z0, TOWN.x1 + 2, GATE.z1, 0);
   for (const t of TOWERS) setCircle(t.x, t.z, t.r, 1);
-  // the plaza's arcade, a ring with four ways through; the spire and the Waystone in the middle
-  const R0 = PLAZA.r + 0.3, R1 = PLAZA.ring + 0.2;
-  for (let z = Math.floor(PLAZA.z - R1); z <= PLAZA.z + R1; z++) for (let x = Math.floor(PLAZA.x - R1); x <= PLAZA.x + R1; x++) {
-    const r = Math.hypot(x + 0.5 - PLAZA.x, z + 0.5 - PLAZA.z);
-    if (r > R0 && r < R1 && !inPlazaWay(x + 0.5, z + 0.5)) setRect(x, z, x + 1, z + 1, 1);
-  }
-  setCircle(PLAZA.x, PLAZA.z, 1.9, 1);
-  setRect(CRYSTAL.x - 0.8, CRYSTAL.z - 0.8, CRYSTAL.x + 0.8, CRYSTAL.z + 0.8, 1);
-  // the Hall of Lanterns and the Sanctuary: walls with a door in the south side, and what stands inside
+  // the plaza: a round court in a square frame, solid from the arcade's wall outward except through the ways;
+  // the columns stand in front of the wall, a pier at each side of each way
+  const R0 = PLAZA.ring - 1.9;
+  for (let z = FRAME.z0; z < FRAME.z1; z++) for (let x = FRAME.x0; x < FRAME.x1; x++)
+    if (Math.hypot(x + 0.5 - PLAZA.x, z + 0.5 - PLAZA.z) > R0 && !inPlazaWay(x + 0.5, z + 0.5)) block(x, z, x + 1, z + 1);
+  for (const p of PILLARS) if (p.on) setCircle(p.x, p.z, 0.75, 1);
+  for (const p of PYLONS) block(p.x - 0.9, p.z - 0.9, p.x + 0.9, p.z + 0.9);
+  block(PLAZA.x - 2, PLAZA.z - 2, PLAZA.x + 2, PLAZA.z + 2);                                   // the spire's base
+  block(CRYSTAL.x - 0.8, CRYSTAL.z - 0.8, CRYSTAL.x + 0.8, CRYSTAL.z + 0.8);
+  block(BOARD.x - 1.3, BOARD.z - 0.3, BOARD.x + 1.3, BOARD.z + 0.3);
+  // the Hall of Lanterns: walls with a door in the south side, the portal's piers, corner towers, columns, the lantern wall
+  const hx = (MEMORIAL.x0 + MEMORIAL.x1) / 2;
   houseWalls(MEMORIAL, 2);
-  for (const x of [MEMORIAL.x0, MEMORIAL.x1]) for (const z of [MEMORIAL.z0, MEMORIAL.z1]) setCircle(x, z, 2.3, 1); // corner towers
+  for (const s of [-1, 1]) block(hx + s * (MEMORIAL.door + 1) - 1, MEMORIAL.z1, hx + s * (MEMORIAL.door + 1) + 1, MEMORIAL.z1 + 2);
+  for (const x of [MEMORIAL.x0, MEMORIAL.x1]) for (const z of [MEMORIAL.z0, MEMORIAL.z1]) setCircle(x, z, 2.3, 1);
   for (const c of COLUMNS) setCircle(c.x, c.z, 0.9, 1);
-  setRect(LANTERN_WALL.x0, LANTERN_WALL.z - 1.2, LANTERN_WALL.x1, LANTERN_WALL.z + 0.6, 1);
-  houseWalls(SANCTUARY, 1.2);
-  for (const t of [...TABLES, HEARTH]) setRect(t.x0, t.z0, t.x1, t.z1, 1);
-  for (const h of HOUSES) setRect(h.x0, h.z0, h.x1, h.z1, 1);
-  for (const s of STALLS) setRect(s.x - 1.5, s.z - 1, s.x + 1.5, s.z + 1, 1);
+  block(LANTERN_WALL.x0, LANTERN_WALL.z - 1.2, LANTERN_WALL.x1, LANTERN_WALL.z - 0.15);
+  // the Sanctuary: walls, the two front towers, the long tables and the hearth
+  houseWalls(SANCTUARY, 2);
+  for (const x of [SANCTUARY.x0, SANCTUARY.x1 - 3]) block(x, SANCTUARY.z1 - 3, x + 3, SANCTUARY.z1);
+  for (const t of [...TABLES, HEARTH]) block(t.x0, t.z0, t.x1, t.z1);
+  for (const h of HOUSES) block(h.x0, h.z0, h.x1, h.z1);
+  for (const s of STALLS) block(s.x - 1.5, s.z - 1, s.x + 1.5, s.z + 1);
   for (const t of [...TREES, ...CYPRESS]) setCircle(t.x, t.z, 0.6, 1);
-  for (const h of HEDGES) setRect(h.x0, h.z0, h.x1, h.z1, 1);
-  for (const p of [...LAMPS, ...FOLK]) setRect(p.x - 0.5, p.z - 0.5, p.x + 0.5, p.z + 0.5, 1);
-  setRect(FORGE.x - 1, FORGE.z - 0.8, FORGE.x + 2.4, FORGE.z + 0.8, 1);
-  setCircle(WELL.x, WELL.z, 1.4, 1);
+  for (const h of HEDGES) block(h.x0, h.z0, h.x1, h.z1);
+  for (const p of [...LAMPS, ...FOLK]) block(p.x - 0.5, p.z - 0.5, p.x + 0.5, p.z + 0.5);
+  block(FORGE.x - 1, FORGE.z - 1.6, FORGE.x + 2.4, FORGE.z + 0.8);                             // hearth, anvil and the hood wall behind
+  block(WELL.x - 1, WELL.z - 1, WELL.x + 1, WELL.z + 1);
 }
 function houseWalls(b, t) {
   const cx = (b.x0 + b.x1) / 2;

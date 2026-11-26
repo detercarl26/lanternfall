@@ -24,6 +24,7 @@ const rim = new THREE.DirectionalLight(0x7f9bff, 1.0); scene.add(rim, rim.target
 const heroLight = new THREE.PointLight(0xffc27a, tune.heroLight, 18, 1.3); scene.add(heroLight);
 const pool = [];
 for (let i = 0; i < 4; i++) { const l = new THREE.PointLight(0xffa040, 0, 22, 1.4); scene.add(l); pool.push(l); }
+const held = pool.map(() => null); // the anchor each pooled light is lighting now
 const world = buildWorld(scene);
 function resize(cw, ch) { renderer.setSize(cw, ch, false); }
 window.VIEW_RESIZE = resize; fit();
@@ -41,12 +42,18 @@ function placeCamera(cam, tx, tz, ty, angleDeg, dist, t) {
 function lightsAt(tx, tz, t) {
   moon.position.set(tx - 24, 46, tz - 18); moon.target.position.set(tx, 0, tz);
   rim.position.set(tx + 6, 9, tz - 26); rim.target.position.set(tx, 1, tz);
-  const list = world.anchors.filter(a => a.power > 0).map(a => ({ a, d: Math.hypot(a.x - tx, a.z - tz) })).sort((p, q) => p.d - q.d);
+  // The pool's lights go to the anchors that matter most here: near ones, and strong ones from further
+  // off. A light keeps its anchor while it is wanted and fades out before it moves, so nothing pops.
+  const want = world.anchors.filter(a => a.power > 0).map(a => ({ a, d: Math.hypot(a.x - tx, a.z - tz) })).filter(q => q.d < 46)
+    .sort((p, q) => p.d / Math.sqrt(p.a.power) - q.d / Math.sqrt(q.a.power)).slice(0, pool.length).map(q => q.a);
   pool.forEach((l, i) => {
-    const it = list[i];
-    if (!it || it.d > 46) { l.intensity = 0; return; }
-    const A = it.a, fl = A.flicker ? 0.86 + 0.14 * Math.sin(t * 11 + i * 3) * Math.sin(t * 7.3 + i) : 1;
-    l.position.set(A.x, A.y, A.z); l.color.setHex(A.color); l.intensity = A.power * fl * (A.scale ?? 1);
+    const A = held[i], keep = !!A && want.includes(A);
+    const fl = keep && A.flicker ? 0.86 + 0.14 * Math.sin(t * 11 + i * 3) * Math.sin(t * 7.3 + i) : 1;
+    l.intensity += ((keep ? A.power * fl * (A.scale ?? 1) : 0) - l.intensity) * 0.16;
+    if (!keep && l.intensity < 0.05) {
+      const next = want.find(a => !held.includes(a)) || null; held[i] = next; l.intensity = 0;
+      if (next) { l.position.set(next.x, next.y, next.z); l.color.setHex(next.color); }
+    }
   });
 }
 

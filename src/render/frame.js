@@ -189,8 +189,12 @@ function worldTick(s, t) {
   });
   world.wallAnchor.scale = 0.15 + 0.85 * lit / Math.max(1, world.lanterns.length);
   world.crystal.rotation.y = t * 0.6; world.crystal.position.y = world.crystalY + Math.sin(t * 1.4) * 0.12;
-  const h = s.hero; // a roof you are standing under is lifted off
-  for (const R of world.roofs) { const inside = !!h && h.x > R.x0 && h.x < R.x1 && h.z > R.z0 && h.z < R.z1; for (const o of R.objs) o.visible = !inside; }
+  const h = s.hero, cam = CUT.cam.value; // a roof is lifted off while you stand under it, or the camera hangs over it
+  for (const R of world.roofs) {
+    const under = (x, z) => x > R.x0 && x < R.x1 && z > R.z0 && z < R.z1;
+    const lift = (!!h && under(h.x, h.z)) || (CUT.r.value > 0 && under(cam.x, cam.z));
+    for (const o of R.objs) o.visible = !lift;
+  }
   swayFolk(t);
   world.doorStone.rotation.y = t * 0.6;
   world.doorStoneMat.emissiveIntensity = s.doorStone ? 1.6 + Math.sin(t * 2) * 0.2 : 0;
@@ -206,8 +210,8 @@ function swayFolk(t) { // Ashgate's townsfolk shift their weight and look about 
   const d = F.d;
   F.list.forEach((f, i) => {
     const turn = f.face + Math.sin(t * 0.5 + i * 1.7) * 0.3, lean = Math.sin(t * 0.9 + i * 2.3) * 0.03;
-    d.position.set(f.x, 0, f.z); d.rotation.set(lean, turn, 0); d.scale.set(1, 1, 1); d.updateMatrix(); F.bodies.setMatrixAt(i, d.matrix);
-    d.position.set(f.x + Math.sin(turn) * lean * 1.6, 1.6, f.z + Math.cos(turn) * lean * 1.6); d.rotation.set(0, turn + Math.sin(t * 0.7 + i) * 0.25, 0); d.updateMatrix();
+    d.position.set(f.x, 0, f.z); d.rotation.set(lean, turn, 0, 'YXZ'); d.scale.set(1, 1, 1); d.updateMatrix(); F.bodies.setMatrixAt(i, d.matrix); // turn first, then lean forward
+    d.position.set(f.x + Math.sin(turn) * lean * 1.6, 1.6, f.z + Math.cos(turn) * lean * 1.6); d.rotation.set(0, turn + Math.sin(t * 0.7 + i) * 0.25, 0, 'XYZ'); d.updateMatrix();
     F.heads.setMatrixAt(i, d.matrix); F.hoods.setMatrixAt(i, d.matrix);
   });
   F.bodies.instanceMatrix.needsUpdate = F.heads.instanceMatrix.needsUpdate = F.hoods.instanceMatrix.needsUpdate = true;
