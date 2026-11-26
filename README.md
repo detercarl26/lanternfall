@@ -10,7 +10,9 @@ Built with [three.js](https://threejs.org) for the 3D world and a plain 2D canva
 
 ## Play it
 
-You need [Node.js](https://nodejs.org) 22.12 or later.
+**In your browser:** https://detercarl26.github.io/lanternfall/ (rebuilt on every push to `main`)
+
+**On your own machine** you need [Node.js](https://nodejs.org) 22.12 or later.
 
 ```bash
 npm install
