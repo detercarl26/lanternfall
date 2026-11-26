@@ -6,14 +6,14 @@ import { rng } from '../../math.js';
 import { nid, state } from '../state.js';
 
 const BOT_ROSTER = [
-  { name: 'Hale', cls: 'vanguard', mode: 'town', x: 7, z: 9 },
-  { name: 'Orrin', cls: 'mender', mode: 'town', x: -3, z: -9 },
-  { name: 'Tamsin', cls: 'ranger', mode: 'town', x: -14, z: 5 },
-  { name: 'Pell', cls: 'vanguard', mode: 'town', x: -20, z: -4 },
-  { name: 'Juno', cls: 'mender', mode: 'town', x: -17, z: 13 },
-  { name: 'Bram', cls: 'vanguard', mode: 'lfg', x: 9, z: -4 },
-  { name: 'Kestrel', cls: 'ranger', mode: 'lfg', x: 11, z: 3 },
-  { name: 'Lio', cls: 'mender', mode: 'lfg', x: -3, z: 9 },
+  { name: 'Hale', cls: 'vanguard', mode: 'town', x: -36, z: 12 },     // Ashgate: the plaza, the market, the Hall of Lanterns
+  { name: 'Orrin', cls: 'mender', mode: 'town', x: -50, z: -10 },
+  { name: 'Tamsin', cls: 'ranger', mode: 'town', x: -30, z: 4 },
+  { name: 'Pell', cls: 'vanguard', mode: 'town', x: -44, z: -48 },
+  { name: 'Juno', cls: 'mender', mode: 'town', x: 0, z: 0 },
+  { name: 'Bram', cls: 'vanguard', mode: 'lfg', x: -34, z: -4 },
+  { name: 'Kestrel', cls: 'ranger', mode: 'lfg', x: -52, z: 10 },
+  { name: 'Lio', cls: 'mender', mode: 'lfg', x: -46, z: 14 },
   { name: 'Mira', cls: 'ranger', mode: 'rescue', x: 52, z: 12, pack: 'r1' },
   { name: 'Sable', cls: 'mender', mode: 'rescue', x: 98, z: -34, pack: 'r2' },
   { name: 'Doran', cls: 'vanguard', mode: 'rescue', x: 156, z: -34, pack: 'r3' },

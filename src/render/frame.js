@@ -10,9 +10,9 @@ import { ALPHA } from '../main.js';
 import { mouse } from '../platform/input.js';
 import { makeRng } from '../math.js';
 import { FX, SHAKE, setShake } from '../game/state.js';
-import { SPAWN } from '../game/world/floor1.js';
+import { SPAWN, PLAZA } from '../game/world/floor1.js';
 import { doorClosed } from '../game/world/grid.js';
-import { M, glowMat } from './materials.js';
+import { M, glowMat, CUT } from './materials.js';
 import * as FIG from './figures.js';
 import { renderer, scene, camera, heroLight, world, zoom, setZoom, placeCamera, lightsAt } from './scene.js';
 
@@ -188,7 +188,10 @@ function worldTick(s, t) {
     else { L.mat.emissiveIntensity = 0; L.halo.visible = false; }
   });
   world.wallAnchor.scale = 0.15 + 0.85 * lit / Math.max(1, world.lanterns.length);
-  world.crystal.rotation.y = t * 0.6; world.crystal.position.y = 2.0 + Math.sin(t * 1.4) * 0.12;
+  world.crystal.rotation.y = t * 0.6; world.crystal.position.y = world.crystalY + Math.sin(t * 1.4) * 0.12;
+  const h = s.hero; // a roof you are standing under is lifted off
+  for (const R of world.roofs) { const inside = !!h && h.x > R.x0 && h.x < R.x1 && h.z > R.z0 && h.z < R.z1; for (const o of R.objs) o.visible = !inside; }
+  swayFolk(t);
   world.doorStone.rotation.y = t * 0.6;
   world.doorStoneMat.emissiveIntensity = s.doorStone ? 1.6 + Math.sin(t * 2) * 0.2 : 0;
   world.doorSlabs.forEach((m, i) => { const target = (i ? 1 : -1) * (doorClosed ? 2.05 : 6.1); m.position.z += (target - m.position.z) * 0.12; });
@@ -198,11 +201,24 @@ function worldTick(s, t) {
   world.stairs.anchor.power = open ? 18 : 0;
 }
 
-function render(s, tx, tz, angle, dist) {
+function swayFolk(t) { // Ashgate's townsfolk shift their weight and look about a little
+  const F = world.folk; if (!F) return;
+  const d = F.d;
+  F.list.forEach((f, i) => {
+    const turn = f.face + Math.sin(t * 0.5 + i * 1.7) * 0.3, lean = Math.sin(t * 0.9 + i * 2.3) * 0.03;
+    d.position.set(f.x, 0, f.z); d.rotation.set(lean, turn, 0); d.scale.set(1, 1, 1); d.updateMatrix(); F.bodies.setMatrixAt(i, d.matrix);
+    d.position.set(f.x + Math.sin(turn) * lean * 1.6, 1.6, f.z + Math.cos(turn) * lean * 1.6); d.rotation.set(0, turn + Math.sin(t * 0.7 + i) * 0.25, 0); d.updateMatrix();
+    F.heads.setMatrixAt(i, d.matrix); F.hoods.setMatrixAt(i, d.matrix);
+  });
+  F.bodies.instanceMatrix.needsUpdate = F.heads.instanceMatrix.needsUpdate = F.hoods.instanceMatrix.needsUpdate = true;
+}
+
+function render(s, tx, tz, angle, dist, cut) {
   frameNo++;
   const dtv = Math.max(0, Math.min(0.1, s.t - lastT)); lastT = s.t;
   setShake(Math.max(0, SHAKE - dtv * 2.2));
   placeCamera(camera, tx, tz, 1.0, angle, dist, s.t);
+  CUT.cam.value.copy(camera.position); CUT.hero.value.set(tx, 1.0, tz); CUT.r.value = cut ? tune.cutRadius : 0;
   lightsAt(tx, tz, s.t);
   heroLight.intensity = tune.heroLight;
   syncHero(s, ALPHA); syncBots(s, ALPHA); syncEnemies(s, ALPHA); syncDrops(s, ALPHA); syncProjectiles(s, ALPHA);
@@ -219,11 +235,11 @@ function drawPlay(s) {
   if (mouse.wheel) { setZoom(Math.max(tune.camZoomMin, Math.min(tune.camZoomMax, zoom + mouse.wheel * 1.6))); mouse.wheel = 0; }
   const h = s.hero, tx = h.px + (h.x - h.px) * ALPHA, tz = h.pz + (h.z - h.pz) * ALPHA;
   heroLight.position.set(tx, 3.2, tz + 0.6);
-  render(s, tx, tz, tune.camAngle, zoom);
+  render(s, tx, tz, tune.camAngle, zoom, true);
 }
-function drawTitle(s) {
+function drawTitle(s) { // the plaza at night, looking north to the Hall of Lanterns
   heroLight.position.set(SPAWN.x, 3.2, SPAWN.z + 0.6);
-  render(s, -8 + Math.sin(s.t * 0.08) * 5, -7, 40, 25);
+  render(s, PLAZA.x + Math.sin(s.t * 0.08) * 5, PLAZA.z - 6, 38, 34, false);
 }
 
 export { drawPlay, drawTitle };

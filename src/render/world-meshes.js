@@ -1,15 +1,15 @@
-// buildWorld: the 3D meshes of every place and prop on Floor 1.
+// buildWorld: the 3D meshes of every place and prop on Floor 1 (Ashgate's are in town-meshes.js).
 
 import * as THREE from 'three';
 import { CHEAP } from '../platform/page.js';
-import { WORLD, TOWN, FIELD, HOLLOW, RIDGE, CRYSTAL, BOARD, FORGE, DOORSTONE, HALL, STAIRS, LANTERN_WALL, PATH, CELL, MAZE_X0, MAZE_Z0, MAZE } from '../game/world/floor1.js';
-import { BOT_ROSTER } from '../game/bots/roster.js';
-import { GW, GH, HOUSES } from '../game/world/grid.js';
+import { WORLD, FIELD, HOLLOW, RIDGE, DOORSTONE, HALL, STAIRS, PATH, CELL, MAZE_X0, MAZE_Z0, MAZE } from '../game/world/floor1.js';
+import { GW, GH } from '../game/world/grid.js';
 import { wrng, TREES, ROCKS, TUFTS, RUINS } from '../game/world/decor.js';
 import { M, glowMat, TEX } from './materials.js';
+import { buildTown } from './town-meshes.js';
 
 function buildWorld(scene) {
-  const out = { lanterns: [], anchors: [], door: null, doorStone: null, crystal: null, stairs: null, doorSlabs: [] };
+  const out = { lanterns: [], anchors: [], roofs: [], folk: null, door: null, doorStone: null, crystal: null, stairs: null, doorSlabs: [] };
   const add = (geo, mat, x, y, z, o = {}) => {
     const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z);
     if (o.rx) m.rotation.x = o.rx; if (o.ry) m.rotation.y = o.ry; if (o.rz) m.rotation.z = o.rz;
@@ -20,9 +20,8 @@ function buildWorld(scene) {
   const box = (w, h, d) => new THREE.BoxGeometry(w, h, d);
   const flat = (w, h) => { const g = new THREE.PlaneGeometry(w, h); g.rotateX(-Math.PI / 2); return g; };
 
-  // Ground: the Greyfields, Ashgate's cobbles, the Hollow's red earth, the dirt road.
+  // Ground: the Greyfields, the Hollow's red earth, the dirt road.
   add(flat(GW, GH), new THREE.MeshStandardMaterial({ map: TEX.ground(), roughness: 0.95 }), (WORLD.x0 + WORLD.x1) / 2, 0, (WORLD.z0 + WORLD.z1) / 2, { cast: false });
-  add(flat(TOWN.x1 - TOWN.x0 + 2, TOWN.z1 - TOWN.z0 + 2), new THREE.MeshStandardMaterial({ map: TEX.cobble(), roughness: 0.9 }), (TOWN.x0 + TOWN.x1) / 2, 0.01, (TOWN.z0 + TOWN.z1) / 2, { cast: false });
   add(flat(HOLLOW.x1 - HOLLOW.x0 + 4, HOLLOW.z1 - HOLLOW.z0 + 4), new THREE.MeshStandardMaterial({ map: TEX.hollow(), roughness: 0.95 }), (HOLLOW.x0 + HOLLOW.x1) / 2, 0.012, (HOLLOW.z0 + HOLLOW.z1) / 2, { cast: false });
   const dirtMat = new THREE.MeshStandardMaterial({ map: TEX.dirt(), transparent: true, depthWrite: false, roughness: 1 });
   for (let i = 0; i < PATH.length - 1; i++) {
@@ -31,80 +30,9 @@ function buildWorld(scene) {
     m.rotation.y = -Math.atan2(bz - az, bx - ax);
   }
 
-  // Ashgate: palisade, gate, houses, the lantern wall, the Waystone, the board, the forge.
-  const logGeo = new THREE.CylinderGeometry(0.26, 0.3, 3.4, 6), tipGeo = new THREE.ConeGeometry(0.28, 0.7, 6);
-  const logs = [];
-  const runLogs = (x0, z0, x1, z1) => {
-    const n = Math.ceil(Math.hypot(x1 - x0, z1 - z0) / 0.58);
-    for (let i = 0; i <= n; i++) logs.push([x0 + (x1 - x0) * i / n, z0 + (z1 - z0) * i / n]);
-  };
-  const tx0 = TOWN.x0 - 0.5, tx1 = TOWN.x1 + 0.5, tz0 = TOWN.z0 - 0.5, tz1 = TOWN.z1 + 0.5;
-  runLogs(tx0, tz0, tx1, tz0); runLogs(tx0, tz1, tx1, tz1); runLogs(tx0, tz0, tx0, tz1);
-  runLogs(tx1, tz0, tx1, -4.3); runLogs(tx1, 4.3, tx1, tz1);
-  const logMesh = new THREE.InstancedMesh(logGeo, M(0x3a2c20), logs.length), tipMesh = new THREE.InstancedMesh(tipGeo, M(0x4a3828), logs.length);
+  // Ashgate: its walls, plaza, hall, sanctuary, market, houses and people.
   const d = new THREE.Object3D();
-  logs.forEach(([x, z], i) => {
-    const h = 0.85 + wrng() * 0.3;
-    d.position.set(x, 1.7 * h, z); d.scale.set(1, h, 1); d.rotation.set(0, wrng() * 3, 0); d.updateMatrix(); logMesh.setMatrixAt(i, d.matrix);
-    d.position.set(x, 3.4 * h + 0.3, z); d.scale.set(1, 1, 1); d.updateMatrix(); tipMesh.setMatrixAt(i, d.matrix);
-  });
-  for (const im of [logMesh, tipMesh]) { im.castShadow = !CHEAP; im.receiveShadow = !CHEAP; scene.add(im); }
-  for (const z of [-4.6, 4.6]) {
-    add(new THREE.CylinderGeometry(0.4, 0.45, 5, 8), M(0x2e241a), TOWN.x1 + 0.5, 2.5, z);
-    add(box(0.25, 0.5, 0.25), M(0x1a1a1a, { metal: 0.6 }), TOWN.x1 + 1.1, 3.2, z);
-    add(new THREE.ConeGeometry(0.16, 0.45, 6), glowMat(0xffa040), TOWN.x1 + 1.1, 3.65, z, { cast: false });
-    out.anchors.push({ x: TOWN.x1 + 1.6, y: 3.6, z, color: 0xffa24a, power: 14, flicker: true });
-  }
-  add(box(0.6, 0.6, 10.4), M(0x2e241a), TOWN.x1 + 0.5, 5.1, 0);
-
-  for (const h of HOUSES) {
-    const g = new THREE.Group(); g.position.set(h.x, 0, h.z); scene.add(g);
-    add(box(h.w, 3.2, h.d), M(0x4a4138), 0, 1.6, 0, { parent: g });
-    for (const sx of [-1, 1]) add(box(0.22, 3.25, 0.22), M(0x2a1f17), sx * (h.w / 2 - 0.1), 1.62, h.d / 2 + 0.02, { parent: g });
-    add(box(h.w + 0.1, 0.22, 0.22), M(0x2a1f17), 0, 3.1, h.d / 2 + 0.03, { parent: g });
-    const roof = add(new THREE.ConeGeometry(1, 1, 4), M(h.roof), 0, 3.2 + 1.3, 0, { parent: g, ry: Math.PI / 4 });
-    roof.scale.set(h.w * 0.78, 2.6, h.d * 0.78);
-    add(box(1.0, 1.8, 0.1), M(0x24190f), 0, 0.9, h.d / 2 + 0.06, { parent: g });
-    for (const sx of [-1, 1]) add(box(0.7, 0.6, 0.06), M(0x000000, { em: 0xffa64d, ei: 1.4 }), sx * h.w * 0.28, 1.9, h.d / 2 + 0.05, { parent: g, cast: false });
-    add(box(0.6, 1.4, 0.6), M(0x3a3430), h.w * 0.25, 4.6, -h.d * 0.2, { parent: g });
-  }
-
-  // The lantern wall: one lantern for each bot player on this floor; it goes dark when they fall.
-  const lw = LANTERN_WALL, wlen = lw.x1 - lw.x0;
-  add(box(wlen, 2.9, 0.9), M(0x3b3833), (lw.x0 + lw.x1) / 2, 1.45, lw.z - 0.6);
-  add(box(wlen + 0.4, 0.3, 1.2), M(0x2c2a27), (lw.x0 + lw.x1) / 2, 3.0, lw.z - 0.6);
-  for (let i = 0; i < BOT_ROSTER.length; i++) {
-    const x = lw.x0 + 1.2 + i * (wlen - 2.4) / (BOT_ROSTER.length - 1);
-    add(box(0.08, 0.08, 0.5), M(0x1c1c1c, { metal: 0.6 }), x, 2.35, lw.z - 0.05, { cast: false });
-    const glass = new THREE.MeshStandardMaterial({ color: 0x2a1a08, emissive: 0xffb04a, emissiveIntensity: 2.2, roughness: 0.4 });
-    const lan = add(new THREE.CylinderGeometry(0.15, 0.15, 0.36, 6), glass, x, 2.0, lw.z + 0.22, { cast: false });
-    add(new THREE.ConeGeometry(0.2, 0.18, 6), M(0x1a1a1a, { metal: 0.6 }), x, 2.27, lw.z + 0.22, { cast: false });
-    add(box(0.34, 0.04, 0.34), M(0x1a1a1a, { metal: 0.6 }), x, 1.81, lw.z + 0.22, { cast: false });
-    const halo = add(new THREE.SphereGeometry(0.42, 10, 8), glowMat(0xffa040, 0.22), x, 2.0, lw.z + 0.24, { cast: false });
-    out.lanterns.push({ mat: glass, halo, lit: true, x, z: lw.z + 0.22 });
-  }
-  out.wallAnchor = { x: (lw.x0 + lw.x1) / 2, y: 2.6, z: lw.z + 2.2, color: 0xffb257, power: 22, flicker: true };
-  out.anchors.push(out.wallAnchor);
-
-  const cr = CRYSTAL;
-  add(new THREE.CylinderGeometry(0.9, 1.1, 0.6, 8), M(0x3d3a36), cr.x, 0.3, cr.z);
-  add(new THREE.CylinderGeometry(0.55, 0.7, 0.5, 8), M(0x35322e), cr.x, 0.85, cr.z);
-  out.crystal = add(new THREE.OctahedronGeometry(0.62, 0), M(0x5a8fb8, { em: 0x3f96df, ei: 1.1, rough: 0.25 }), cr.x, 2.0, cr.z, { cast: false });
-  out.crystal.scale.set(0.8, 1.35, 0.8);
-  out.anchors.push({ x: cr.x, y: 2.4, z: cr.z + 0.6, color: 0x8fd0ff, power: 16, flicker: false });
-
-  const bd = BOARD;
-  for (const sx of [-1, 1]) add(box(0.18, 2.6, 0.18), M(0x3a2c20), bd.x + sx * 1.1, 1.3, bd.z);
-  add(box(2.6, 1.5, 0.12), M(0x4a3826), bd.x, 1.7, bd.z + 0.05);
-  for (let i = 0; i < 5; i++) add(new THREE.PlaneGeometry(0.42, 0.52), M(0xcfc2a0, { side: THREE.DoubleSide }), bd.x - 0.9 + i * 0.45, 1.7 + (i % 2) * 0.22 - 0.1, bd.z + 0.12, { cast: false, rz: (wrng() - 0.5) * 0.2 });
-  add(new THREE.ConeGeometry(1.0, 0.5, 4), M(0x2b2a31), bd.x, 2.85, bd.z, { ry: Math.PI / 4, s: [1.6, 1, 0.5] });
-
-  const fg = FORGE;
-  add(box(1.6, 1.0, 1.4), M(0x3a3430), fg.x, 0.5, fg.z);
-  add(box(1.2, 0.2, 1.0), M(0x000000, { em: 0xff6a1a, ei: 2 }), fg.x, 1.02, fg.z, { cast: false });
-  add(box(0.9, 0.5, 0.4), M(0x2a2a2c, { metal: 0.7, rough: 0.5 }), fg.x + 1.8, 0.75, fg.z);
-  add(box(0.4, 0.5, 0.3), M(0x2a2a2c, { metal: 0.7, rough: 0.5 }), fg.x + 1.8, 0.25, fg.z);
-  out.anchors.push({ x: fg.x, y: 1.8, z: fg.z + 0.8, color: 0xff7a2a, power: 14, flicker: true });
+  buildTown(scene, out, add);
 
   // The Greyfields and the Hollow: dead trees, rocks, dry grass, ruins, the road's torches.
   const trunkGeo = new THREE.CylinderGeometry(0.14, 0.3, 1, 6), branchGeo = new THREE.CylinderGeometry(0.04, 0.1, 1, 5);
@@ -133,9 +61,8 @@ function buildWorld(scene) {
   // The edge of the floor: boulders along every border, so the walls read as cliffs.
   const edge = [];
   const runEdge = (x0, z0, x1, z1) => { const n = Math.ceil(Math.hypot(x1 - x0, z1 - z0) / 3.2); for (let i = 0; i <= n; i++) edge.push([x0 + (x1 - x0) * i / n, z0 + (z1 - z0) * i / n]); };
-  runEdge(FIELD.x0 - 1.5, FIELD.z1 + 1.5, FIELD.x1 + 1.5, FIELD.z1 + 1.5);
-  runEdge(FIELD.x0 - 1.5, FIELD.z0 - 1.5, FIELD.x0 - 1.5, FIELD.z1 + 1.5);
-  runEdge(FIELD.x0 - 1.5, FIELD.z0 - 1.5, RIDGE.gaps[0][0], FIELD.z0 - 1.5);
+  runEdge(FIELD.x0 + 3, FIELD.z1 + 1.5, FIELD.x1 + 1.5, FIELD.z1 + 1.5);   // the field's west edge is Ashgate's wall
+  runEdge(FIELD.x0 + 1, FIELD.z0 - 1.5, RIDGE.gaps[0][0], FIELD.z0 - 1.5);
   runEdge(RIDGE.gaps[0][1], FIELD.z0 - 1.5, RIDGE.gaps[1][0], FIELD.z0 - 1.5);
   runEdge(RIDGE.gaps[1][1], FIELD.z0 - 1.5, FIELD.x1 + 1.5, FIELD.z0 - 1.5);
   runEdge(FIELD.x1 + 1.5, FIELD.z0 - 1.5, FIELD.x1 + 1.5, -21); runEdge(FIELD.x1 + 1.5, -11, FIELD.x1 + 1.5, FIELD.z1 + 1.5);

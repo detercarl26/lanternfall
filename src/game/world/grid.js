@@ -1,18 +1,14 @@
 // Where bodies can stand and how they move: the walkable grid carved from the layout, the Warden's
 // door, moveEnt, moveDir, line of sight, areaAt, placeNear, separate.
 
-import { dist, turnToward } from '../../math.js';
+import { rng, dist, turnToward } from '../../math.js';
 import { state } from '../state.js';
-import { WORLD, TOWN, FIELD, HOLLOW, RIDGE, CRYSTAL, HALL, DOOR, LANTERN_WALL, PATH, MAZE_X0, CELL, MAZE_Z0, MAZE } from './floor1.js';
+import { WORLD, TOWN, FIELD, HOLLOW, RIDGE, GATE, PLAZA, MEMORIAL, SANCTUARY, WELL, SPAWN, CRYSTAL, FORGE, HALL, DOOR, LANTERN_WALL, PATH, MAZE_X0, CELL, MAZE_Z0, MAZE } from './floor1.js';
+import { inPlazaWay, TOWERS, HOUSES, STALLS, COLUMNS, TABLES, HEARTH, TREES, CYPRESS, HEDGES, LAMPS, FOLK } from './town.js';
 
 const GW = WORLD.x1 - WORLD.x0, GH = WORLD.z1 - WORLD.z0;
 const solid = new Uint8Array(GW * GH).fill(1);
 let doorClosed = false; // the Warden's door, shut while the boss fight runs
-const HOUSES = [
-  { x: -26, z: -10, w: 6, d: 6, roof: 0x2b2a31 }, { x: -26, z: 12, w: 6, d: 6, roof: 0x4a3a24 },
-  { x: -12, z: 17, w: 6, d: 5, roof: 0x2b2a31 }, { x: 10, z: -14, w: 6, d: 6, roof: 0x4a3a24 },
-  { x: -18, z: -14, w: 5, d: 5, roof: 0x3a2f2a },
-];
 function cellOf(x, z) {
   const i = Math.floor(x - WORLD.x0), j = Math.floor(z - WORLD.z0);
   return (i < 0 || j < 0 || i >= GW || j >= GH) ? -1 : j * GW + i;
@@ -54,8 +50,8 @@ function los(x0, z0, x1, z1) {
 function areaAt(x, z) {
   if (x >= 199) return 'hall';
   if (x >= 120) return 'labyrinth';
+  if (x >= TOWN.x0 - 1 && x <= TOWN.x1 + 1 && z >= TOWN.z0 - 1 && z <= TOWN.z1 + 1) return 'town'; // before the Hollow: the town reaches further north
   if (z < -63) return 'hollow';
-  if (x >= TOWN.x0 - 1 && x <= TOWN.x1 + 1 && z >= TOWN.z0 - 1 && z <= TOWN.z1 + 1) return 'town';
   return 'field';
 }
 function inHollow(x, z) { return z < -64 && x > HOLLOW.x0 - 2 && x < HOLLOW.x1 + 2; }
@@ -78,20 +74,55 @@ function distToPath(x, z) {
   setRect(116, -20, 122, -12, 0);   // the field's mouth into the labyrinth
   setRect(196, -4, 204, 4, 0);      // the passage through the Warden's door
   setCircle(HALL.x, HALL.z, HALL.r, 0);
-  // Ashgate's palisade, with its east gate
-  setRect(TOWN.x0 - 1, TOWN.z0 - 1, TOWN.x0, TOWN.z1 + 1, 1);
-  setRect(TOWN.x0 - 1, TOWN.z0 - 1, TOWN.x1 + 1, TOWN.z0, 1);
-  setRect(TOWN.x0 - 1, TOWN.z1, TOWN.x1 + 1, TOWN.z1 + 1, 1);
-  setRect(TOWN.x1, TOWN.z0 - 1, TOWN.x1 + 1, -4, 1);
-  setRect(TOWN.x1, 4, TOWN.x1 + 1, TOWN.z1 + 1, 1);
-  for (const h of HOUSES) setRect(h.x - h.w / 2, h.z - h.d / 2, h.x + h.w / 2, h.z + h.d / 2, 1);
-  setRect(LANTERN_WALL.x0, TOWN.z0 - 1, LANTERN_WALL.x1, LANTERN_WALL.z + 0.6, 1);
-  setRect(CRYSTAL.x - 0.8, CRYSTAL.z - 0.8, CRYSTAL.x + 0.8, CRYSTAL.z + 0.8, 1);
+  carveTown();
   for (let k = 0; k < 8; k++) {
     const a = k * Math.PI / 4 + Math.PI / 8;
     setCircle(HALL.x + Math.cos(a) * 12, HALL.z + Math.sin(a) * 12, 1.1, 1);
   }
 })();
+
+// Ashgate: open ground inside the walls, the east gate the one way out; then everything standing in it
+function carveTown() {
+  setRect(TOWN.x0, TOWN.z0, TOWN.x1, TOWN.z1, 0);
+  setRect(TOWN.x1, GATE.z0, TOWN.x1 + 2, GATE.z1, 0);
+  for (const t of TOWERS) setCircle(t.x, t.z, t.r, 1);
+  // the plaza's arcade, a ring with four ways through; the spire and the Waystone in the middle
+  const R0 = PLAZA.r + 0.3, R1 = PLAZA.ring + 0.2;
+  for (let z = Math.floor(PLAZA.z - R1); z <= PLAZA.z + R1; z++) for (let x = Math.floor(PLAZA.x - R1); x <= PLAZA.x + R1; x++) {
+    const r = Math.hypot(x + 0.5 - PLAZA.x, z + 0.5 - PLAZA.z);
+    if (r > R0 && r < R1 && !inPlazaWay(x + 0.5, z + 0.5)) setRect(x, z, x + 1, z + 1, 1);
+  }
+  setCircle(PLAZA.x, PLAZA.z, 1.9, 1);
+  setRect(CRYSTAL.x - 0.8, CRYSTAL.z - 0.8, CRYSTAL.x + 0.8, CRYSTAL.z + 0.8, 1);
+  // the Hall of Lanterns and the Sanctuary: walls with a door in the south side, and what stands inside
+  houseWalls(MEMORIAL, 2);
+  for (const x of [MEMORIAL.x0, MEMORIAL.x1]) for (const z of [MEMORIAL.z0, MEMORIAL.z1]) setCircle(x, z, 2.3, 1); // corner towers
+  for (const c of COLUMNS) setCircle(c.x, c.z, 0.9, 1);
+  setRect(LANTERN_WALL.x0, LANTERN_WALL.z - 1.2, LANTERN_WALL.x1, LANTERN_WALL.z + 0.6, 1);
+  houseWalls(SANCTUARY, 1.2);
+  for (const t of [...TABLES, HEARTH]) setRect(t.x0, t.z0, t.x1, t.z1, 1);
+  for (const h of HOUSES) setRect(h.x0, h.z0, h.x1, h.z1, 1);
+  for (const s of STALLS) setRect(s.x - 1.5, s.z - 1, s.x + 1.5, s.z + 1, 1);
+  for (const t of [...TREES, ...CYPRESS]) setCircle(t.x, t.z, 0.6, 1);
+  for (const h of HEDGES) setRect(h.x0, h.z0, h.x1, h.z1, 1);
+  for (const p of [...LAMPS, ...FOLK]) setRect(p.x - 0.5, p.z - 0.5, p.x + 0.5, p.z + 0.5, 1);
+  setRect(FORGE.x - 1, FORGE.z - 0.8, FORGE.x + 2.4, FORGE.z + 0.8, 1);
+  setCircle(WELL.x, WELL.z, 1.4, 1);
+}
+function houseWalls(b, t) {
+  const cx = (b.x0 + b.x1) / 2;
+  setRect(b.x0, b.z0, b.x1, b.z0 + t, 1); setRect(b.x0, b.z0, b.x0 + t, b.z1, 1); setRect(b.x1 - t, b.z0, b.x1, b.z1, 1);
+  setRect(b.x0, b.z1 - t, cx - b.door, b.z1, 1); setRect(cx + b.door, b.z1 - t, b.x1, b.z1, 1);
+}
+
+// Somewhere open in the plaza, for a bot walking back to town
+function townSpot() {
+  for (let k = 0; k < 40; k++) {
+    const a = rng() * Math.PI * 2, r = 8 + rng() * 10, x = PLAZA.x + Math.cos(a) * r, z = PLAZA.z + Math.sin(a) * r;
+    if (circleFree(x, z, 0.6)) return { x, z };
+  }
+  return { x: SPAWN.x, z: SPAWN.z };
+}
 
 function moveDir(e, ang, speed, dt) {
   moveEnt(e, Math.sin(ang) * speed * dt, Math.cos(ang) * speed * dt);
@@ -126,4 +157,4 @@ function separate() { // no two bodies stand in one place; the Warden is never p
 // Other modules cannot assign to an imported variable, so they call these.
 export function setDoorClosed(v) { doorClosed = v; return v; }
 
-export { GW, GH, doorClosed, HOUSES, setCircle, isSolid, circleFree, moveEnt, los, areaAt, inHollow, distToPath, moveDir, placeNear, separate };
+export { GW, GH, doorClosed, setCircle, isSolid, circleFree, moveEnt, los, areaAt, inHollow, distToPath, moveDir, placeNear, separate, townSpot };

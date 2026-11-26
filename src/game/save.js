@@ -1,14 +1,13 @@
 // The save in this browser: saveGame, readSave, hasSave, clearSave, and loadGame, which puts the
 // saved hero and party back into a fresh world.
 
-import { rrange } from '../math.js';
 import { emit, state } from './state.js';
 import { SPAWN } from './world/floor1.js';
 import { botStats } from './bots/roster.js';
 import { packIndex } from './enemies/spawn.js';
 import { recalcHero } from './hero/hero.js';
 import { chat } from './chat.js';
-import { placeNear } from './world/grid.js';
+import { placeNear, townSpot } from './world/grid.js';
 
 const SAVE_KEY = 'lanternfall.floor1.v1';
 function saveGame() {
@@ -35,7 +34,7 @@ function loadGame() {
     b.rescued = !!sb.rescued;
     if (!sb.alive) { b.alive = false; b.deadT = 99; b.party = false; continue; }
     if (sb.party) { b.party = true; b.mode = 'party'; b.slot = sb.slot >= 0 ? sb.slot : 0; placeNear(b, SPAWN.x, SPAWN.z); }
-    else if (b.packId && sb.mode !== 'rescue') { b.mode = 'lfg'; b.home = { x: rrange(-14, 10), z: rrange(-6, 12) }; b.x = b.px = b.home.x; b.z = b.pz = b.home.z; }
+    else if (b.packId && sb.mode !== 'rescue') { b.mode = 'lfg'; b.home = townSpot(); b.x = b.px = b.home.x; b.z = b.pz = b.home.z; }
     else if (sb.mode === 'lfg' || sb.mode === 'town') b.mode = sb.mode;
   }
   for (const b of s.bots) if (b.packId && b.mode !== 'rescue') { const pi = packIndex(b.packId); for (const e of s.enemies) if (e.pack === pi && e.state === 'standoff') e.state = 'idle'; }

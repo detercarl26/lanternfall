@@ -15,6 +15,7 @@ const CONFIG = globalThis.CONFIG = {
   camFov: { value: 40, min: 25, max: 70, step: 1 },          // vertical field of view, degrees
   heroLight: { value: 9, min: 0, max: 30, step: 0.5 },       // warm light radius around the hero, intensity
   shake: { value: 1, min: 0, max: 2, step: 0.1 },            // screen shake strength, multiplier
+  cutRadius: { value: 5, min: 0, max: 8, step: 0.1 },      // buildings between the camera and the hero open up this far round them, units (0: off)
 
   // ---- Hero ----
   heroSpeed: { value: 6.2, min: 3, max: 10, step: 0.1 },     // run speed, units per second

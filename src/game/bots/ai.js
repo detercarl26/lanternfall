@@ -6,7 +6,7 @@ import { emit, nid, state } from '../state.js';
 import { sfx } from '../../audio/sfx.js';
 import { packIndex } from '../enemies/spawn.js';
 import { chat, announce } from '../chat.js';
-import { circleFree, moveEnt, los, moveDir, placeNear } from '../world/grid.js';
+import { circleFree, moveEnt, los, moveDir, placeNear, townSpot } from '../world/grid.js';
 import { hittable } from '../hero/sword.js';
 import { damageEnemy } from '../enemies/damage.js';
 
@@ -26,7 +26,7 @@ function updateBots(dt) {
     else if (b.mode === 'party') botParty(b, dt);
     else if (b.mode === 'toTown') {
       b.walkT += dt;
-      if (!b.townSpot) b.townSpot = { x: rrange(-14, 10), z: rrange(-6, 12) };
+      if (!b.townSpot) b.townSpot = townSpot();
       if (b.walkT > 4 || far) { b.x = b.px = b.townSpot.x; b.z = b.pz = b.townSpot.z; b.home = { ...b.townSpot }; b.mode = 'lfg'; }
       else moveDir(b, angTo(b, b.townSpot), 4.5, dt);
     }

@@ -1,20 +1,32 @@
 // Floor 1's layout: the areas (Ashgate, the Greyfields, the Red Hollow, the Sunken Stair, the
-// Hall), the landmarks and the labyrinth.
+// Hall), the landmarks and the labyrinth. Ashgate's houses, stalls and trees are laid out from
+// these in town.js.
 
-const WORLD = { x0: -40, z0: -118, x1: 246, z1: 56 };
-const TOWN = { x0: -32, z0: -22, x1: 18, z1: 22 };        // Ashgate, inside its palisade
-const FIELD = { x0: -34, z0: -62, x1: 118, z1: 52 };      // the Greyfields (the town sits inside)
+const WORLD = { x0: -118, z0: -118, x1: 246, z1: 56 };
+const TOWN = { x0: -112, z0: -68, x1: 18, z1: 52 };       // Ashgate, inside its walls (2 thick)
+const FIELD = { x0: 20, z0: -62, x1: 118, z1: 52 };       // the Greyfields, out past the east gate
 const HOLLOW = { x0: 48, z0: -114, x1: 110, z1: -66 };    // the Red Hollow, the PvP zone
 const RIDGE = { z0: -66, z1: -62, x0: 46, x1: 112, gaps: [[58, 66], [90, 98]] };
-const SPAWN = { x: -8, z: 4 };          // you wake here
-const CRYSTAL = { x: -8, z: -2 };       // the Waystone in Ashgate
-const BOARD = { x: 2, z: -4 };          // the quest board
-const FORGE = { x: 7, z: 12 };
+
+// Ashgate's landmarks
+const GATE = { z0: -4, z1: 4 };                           // the east gate, through the wall at TOWN.x1
+const PLAZA = { x: -44, z: 0, r: 21, ring: 24 };          // the Lantern Plaza: open floor to r, arcade out to ring
+const MEMORIAL = { x0: -60, x1: -28, z0: -64, z1: -33, door: 4 };  // the Hall of Lanterns, door in its south wall
+const SANCTUARY = { x0: -96, x1: -82, z0: -32, z1: -14, door: 2 }; // the Sanctuary, door in its south wall
+const GARDEN = { x0: -106, x1: -72, z0: -38, z1: -7 };   // the Sanctuary's garden
+const MARKET = { x0: -19, x1: 18, z0: -6, z1: 6 };        // the Market Way, from the plaza to the gate
+const FORGE_YARD = { x0: -2, x1: 10, z0: 6, z1: 18 };
+const WELL = { x: -44, z: 44, r: 6 };                     // the well square, at the end of the south avenue
+
+const SPAWN = { x: -40, z: 8 };         // you wake here, in the plaza
+const CRYSTAL = { x: -44, z: 4 };       // the Waystone, at the foot of the plaza's spire
+const BOARD = { x: -31, z: -8 };        // the quest board
+const FORGE = { x: 4, z: 13 };
+const LANTERN_WALL = { x0: -52, x1: -36, z: -61 };        // inside the Hall of Lanterns, facing its door
 const DOORSTONE = { x: 191, z: 5 };     // the Waystone at the Warden's door
 const HALL = { x: 216, z: 0, r: 15 };   // Warden's Hall
 const DOOR = { x0: 199.5, x1: 202.5, z0: -4, z1: 4 };
 const STAIRS = { x: 228, z: 0 };
-const LANTERN_WALL = { x0: -24, x1: 4, z: -19 };
 const PATH = [[18, 0], [40, 2], [62, 0], [84, -6], [104, -12], [121, -16]];
 
 // The labyrinth, the Sunken Stair: '#' wall, '.' floor. Cell = 4 units, from (120, -44).
@@ -44,4 +56,5 @@ const AREA_INFO = {
   hall: { name: "Warden's Hall", sub: 'The floor boss waits. Dodge the red.', color: '#ff9f6a' },
 };
 
-export { WORLD, TOWN, FIELD, HOLLOW, RIDGE, SPAWN, CRYSTAL, BOARD, FORGE, DOORSTONE, HALL, DOOR, STAIRS, LANTERN_WALL, PATH, MAZE_X0, CELL, MAZE_Z0, MAZE, AREA_INFO };
+export { WORLD, TOWN, FIELD, HOLLOW, RIDGE, GATE, PLAZA, MEMORIAL, SANCTUARY, GARDEN, MARKET, FORGE_YARD, WELL,
+  SPAWN, CRYSTAL, BOARD, FORGE, DOORSTONE, HALL, DOOR, STAIRS, LANTERN_WALL, PATH, MAZE_X0, CELL, MAZE_Z0, MAZE, AREA_INFO };
