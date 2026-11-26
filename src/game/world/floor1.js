@@ -21,6 +21,7 @@ const WELL = { x: -44, z: 44, r: 6 };                     // the well square, at
 const SPAWN = { x: -40, z: 8 };         // you wake here, in the plaza
 const CRYSTAL = { x: -44, z: 4 };       // the Waystone, at the foot of the plaza's spire
 const BOARD = { x: -31, z: -8 };        // the quest board
+const STASH = { x: -34, z: 10.5 };      // your stash: a strongbox in the plaza, 2 cells wide
 const FORGE = { x: 4, z: 13 };
 const LANTERN_WALL = { x0: -52, x1: -36, z: -61 };        // inside the Hall of Lanterns, facing its door
 const DOORSTONE = { x: 191, z: 5 };     // the Waystone at the Warden's door
@@ -57,4 +58,4 @@ const AREA_INFO = {
 };
 
 export { WORLD, TOWN, FIELD, HOLLOW, RIDGE, GATE, PLAZA, MEMORIAL, SANCTUARY, GARDEN, MARKET, FORGE_YARD, WELL,
-  SPAWN, CRYSTAL, BOARD, FORGE, DOORSTONE, HALL, DOOR, STAIRS, LANTERN_WALL, PATH, MAZE_X0, CELL, MAZE_Z0, MAZE, AREA_INFO };
+  SPAWN, CRYSTAL, BOARD, STASH, FORGE, DOORSTONE, HALL, DOOR, STAIRS, LANTERN_WALL, PATH, MAZE_X0, CELL, MAZE_Z0, MAZE, AREA_INFO };

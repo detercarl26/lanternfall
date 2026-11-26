@@ -137,7 +137,7 @@ const CONFIG = globalThis.CONFIG = {
   rarityUnique: { value: 0.025, min: 0, max: 0.5, step: 0.005 }, // share that are unique (orange)
   goldPerKill: { value: 6, min: 0, max: 100, step: 1 },      // average gold from a wolf; others more
   goldMagnet: { value: 5.5, min: 0, max: 15, step: 0.5 },    // gold flies to you from this close, units
-  bagSize: { value: 20, min: 4, max: 30, step: 1 },          // bag slots; the bag window fits 6 rows of 5 on the 720-px HUD
+  bagRows: { value: 5, min: 4, max: 6, step: 1 },            // rows in the bag's 12-column grid: 4 fits the tallest sword, 6 the 720-px HUD
 };
 
 // ---- Built to be checked ----------------------------------------------------------------

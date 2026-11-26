@@ -7,12 +7,13 @@ import { emit, state } from './state.js';
 import { sfx } from '../audio/sfx.js';
 import { HOLLOW } from './world/floor1.js';
 import { makeEnemy } from './enemies/spawn.js';
-import { rollRarity, makeItem } from './loot/items.js';
+import { rollRarity, rollKind, makeItem } from './loot/items.js';
 import { chat, announce } from './chat.js';
 import { circleFree, inHollow } from './world/grid.js';
 import { placeItem } from './loot/drops.js';
 import { completeQuest } from './quests.js';
 import { saveGame } from './save.js';
+import { putIn } from './inventory.js';
 
 const ROGUE_NAMES = ['Vex', 'Nyx', 'Cutter', 'Morrow', 'Rook', 'Shade', 'Fen', 'Grist', 'Lark', 'Thorne', 'Quill', 'Sorrel'];
 
@@ -27,7 +28,7 @@ function spawnRogue(fromEdge) {
   const lap = Math.floor(s.rogueIdx / ROGUE_NAMES.length);
   e.name = ROGUE_NAMES[s.rogueIdx % ROGUE_NAMES.length] + (lap ? ' ' + (lap + 1) : '');
   s.rogueIdx++;
-  const item = rng() < tune.dropRogue ? makeItem(rng() < 0.55 ? 'sword' : 'armor', 3 + Math.min(2, Math.floor(s.hero.level / 3)), Math.max(1, rollRarity())) : null;
+  const item = rng() < tune.dropRogue ? makeItem(rollKind(), 3 + Math.min(2, Math.floor(s.hero.level / 3)), Math.max(1, rollRarity())) : null;
   e.cache = { gold: Math.round(tune.cacheGold * rrange(0.6, 1.5)), items: item ? [item] : [] };
   s.enemies.push(e);
 }
@@ -45,8 +46,11 @@ function bankHaul() {
   const s = state, h = s.hero, hl = h.haul;
   if (!hl.gold && !hl.items.length) return;
   h.gold += hl.gold;
-  hl.items.forEach((it, i) => placeItem(it, h.x + Math.cos(i * 1.7) * 1.3, h.z + 1.2 + Math.sin(i * 1.7) * 0.6));
-  announce('Haul secured', `${hl.gold} gold${hl.items.length ? ' and ' + hl.items.length + (hl.items.length > 1 ? ' items at your feet' : ' item at your feet') : ''}`, '#f2d257');
+  const ground = hl.items.filter(it => !putIn('bag', it));   // into the bag where it fits, the rest at your feet
+  ground.forEach((it, i) => placeItem(it, h.x + Math.cos(i * 1.7) * 1.3, h.z + 1.2 + Math.sin(i * 1.7) * 0.6));
+  const n = hl.items.length, inBag = n - ground.length, items = k => `${k} item${k > 1 ? 's' : ''}`;
+  const where = [inBag ? `${items(inBag)} in your bag` : '', ground.length ? `${items(ground.length)} at your feet` : ''].filter(Boolean).join(', ');
+  announce('Haul secured', `${hl.gold} gold${n ? ' and ' + where : ''}`, '#f2d257');
   hl.gold = 0; hl.items = [];
   if (!s.quests.q4) completeQuest('q4');
   sfx.quest(); emit({ type: 'haul' }); saveGame();

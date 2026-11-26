@@ -7,7 +7,7 @@
 import * as THREE from 'three';
 import { CHEAP } from '../platform/page.js';
 import { makeRng } from '../math.js';
-import { TOWN, GATE, PLAZA, MEMORIAL, SANCTUARY, GARDEN, MARKET, WELL, CRYSTAL, BOARD, FORGE, LANTERN_WALL } from '../game/world/floor1.js';
+import { TOWN, GATE, PLAZA, MEMORIAL, SANCTUARY, GARDEN, MARKET, WELL, CRYSTAL, BOARD, STASH, FORGE, LANTERN_WALL } from '../game/world/floor1.js';
 import { BOT_ROSTER } from '../game/bots/roster.js';
 import { inPlazaWay, PILLARS, TOWERS, HOUSES, STALLS, COLUMNS, TABLES, HEARTH, TREES, CYPRESS, HEDGES, LAMPS, FOLK } from '../game/world/town.js';
 import { M, glowMat, cutMat, TEX } from './materials.js';
@@ -122,6 +122,14 @@ function buildTown(scene, out, add) {
   add(box(2.6, 1.5, 0.12), M(0x4a3826), bd.x, 1.7, bd.z + 0.05);
   for (let i = 0; i < 5; i++) add(new THREE.PlaneGeometry(0.42, 0.52), M(0xcfc2a0, { side: THREE.DoubleSide }), bd.x - 0.9 + i * 0.45, 1.7 + (i % 2) * 0.22 - 0.1, bd.z + 0.12, { cast: false, rz: (vr() - 0.5) * 0.2 });
   add(new THREE.ConeGeometry(1.0, 0.5, 4), M(SLATE), bd.x, 2.85, bd.z, { ry: Math.PI / 4, s: [1.6, 1, 0.5] });
+  const sb = STASH;   // your stash: an iron-bound strongbox with a lantern on its lid, on its 2x1 cells
+  add(box(1.9, 0.7, 0.9), M(0x4a3424), sb.x, 0.35, sb.z);
+  add(new THREE.CylinderGeometry(0.45, 0.45, 1.9, 10, 1, false, 0, Math.PI).rotateZ(Math.PI / 2), M(0x3e2b1e), sb.x, 0.7, sb.z);
+  for (const dx of [-0.65, 0, 0.65]) add(box(0.1, 0.74, 0.94), M(0x2e2e32, { metal: 0.6, rough: 0.5 }), sb.x + dx, 0.37, sb.z);
+  add(box(0.22, 0.26, 0.06), M(0xb08a3a, { metal: 0.7, rough: 0.4 }), sb.x, 0.55, sb.z + 0.47);
+  add(new THREE.CylinderGeometry(0.12, 0.1, 0.28, 6), glass(), sb.x + 0.6, 1.32, sb.z, { cast: false });
+  add(new THREE.SphereGeometry(0.4, 8, 6), glowMat(0xffa040, 0.25), sb.x + 0.6, 1.32, sb.z, { cast: false });
+  out.anchors.push({ x: sb.x, y: 1.8, z: sb.z + 0.8, color: 0xffb25a, power: 6, flicker: true });
 
   // ---- The Hall of Lanterns: walls, a portal, columns, the lantern wall; roof and dome hide inside ----
   const hallMat = cutMat(0x5b554d, { flat: true }), HH = 10, T = 2, hw = MEMORIAL.x1 - MEMORIAL.x0, hd = MEMORIAL.z1 - MEMORIAL.z0;

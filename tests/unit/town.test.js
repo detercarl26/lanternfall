@@ -5,7 +5,7 @@ import { describe, it, expect } from 'vitest';
 import { setSeed } from '../../src/math.js';
 import { circleFree, isSolid, areaAt, townSpot } from '../../src/game/world/grid.js';
 import '../../src/game/world/decor.js';
-import { WORLD, TOWN, GATE, PLAZA, MEMORIAL, SANCTUARY, SPAWN, CRYSTAL, BOARD, FORGE, LANTERN_WALL, WELL, DOORSTONE } from '../../src/game/world/floor1.js';
+import { WORLD, TOWN, GATE, PLAZA, MEMORIAL, SANCTUARY, SPAWN, CRYSTAL, BOARD, STASH, FORGE, LANTERN_WALL, WELL, DOORSTONE } from '../../src/game/world/floor1.js';
 import { HOUSES } from '../../src/game/world/town.js';
 import { BOT_ROSTER } from '../../src/game/bots/roster.js';
 
@@ -34,7 +34,7 @@ describe('Ashgate', () => {
 
   it('the hero can walk from the spawn point to every landmark and out of the gate', () => {
     const spots = {
-      'the Waystone': [CRYSTAL.x, CRYSTAL.z + 1.5], 'the quest board': [BOARD.x, BOARD.z + 1.4], 'the forge': [FORGE.x, FORGE.z + 2.5],
+      'the Waystone': [CRYSTAL.x, CRYSTAL.z + 1.5], 'the quest board': [BOARD.x, BOARD.z + 1.4], 'the stash': [STASH.x, STASH.z - 1.8], 'the forge': [FORGE.x, FORGE.z + 2.5],
       'the Hall of Lanterns door': [mid(MEMORIAL.x0, MEMORIAL.x1), MEMORIAL.z1 + 2], 'the lantern wall': [mid(LANTERN_WALL.x0, LANTERN_WALL.x1), LANTERN_WALL.z + 3],
       'the Sanctuary': [mid(SANCTUARY.x0, SANCTUARY.x1), SANCTUARY.z1 - 3], 'the well': [WELL.x, WELL.z + 3],
       'inside the gate': [TOWN.x1 - 2, mid(GATE.z0, GATE.z1)], 'outside the gate': [TOWN.x1 + 6, mid(GATE.z0, GATE.z1)],
@@ -75,6 +75,10 @@ describe('Ashgate', () => {
     expect(areaAt(mid(LANTERN_WALL.x0, LANTERN_WALL.x1), LANTERN_WALL.z + 2)).toBe('town');
     expect(areaAt(TOWN.x0 + 2, TOWN.z0 + 1)).toBe('town');
     expect(areaAt(TOWN.x1 + 6, 0)).toBe('field');
+  });
+
+  it('the strongbox in the plaza is solid', () => {
+    expect(isSolid(STASH.x, STASH.z)).toBe(true);
   });
 
   it('fills the blocks with houses that never overlap', () => {

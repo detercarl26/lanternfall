@@ -5,7 +5,7 @@ import { tune } from '../../config.js';
 import { rng, rrange, dist } from '../../math.js';
 import { emit, nid, state } from '../state.js';
 import { sfx } from '../../audio/sfx.js';
-import { BOSS_UNIQUE, rollRarity, makeItem, uniqueItem } from './items.js';
+import { BOSS_UNIQUE, rollRarity, rollKind, makeItem, uniqueItem } from './items.js';
 import { isSolid, circleFree, inHollow } from '../world/grid.js';
 
 function placeItem(item, x, z) {
@@ -27,7 +27,7 @@ function dropLoot(e) {
   if (e.kind === 'rogue') { spawnDrop('cache', e.x, e.z, { cache: e.cache, name: e.name }); return; }
   if (e.kind === 'warden') { spawnDrop('item', e.x - 1, e.z, { item: uniqueItem(BOSS_UNIQUE, 8) }); spawnDrop('item', e.x + 1, e.z + 1, { item: makeItem('armor', 8, 2) }); return; }
   const ch = { wolf: tune.dropWolf, spitter: tune.dropSpitter, brute: tune.dropBrute }[e.kind] * (e.lab ? 1.3 : 1);
-  if (rng() < ch) spawnDrop('item', e.x, e.z, { item: makeItem(rng() < 0.55 ? 'sword' : 'armor', areaIlvl(e), rollRarity()) });
+  if (rng() < ch) spawnDrop('item', e.x, e.z, { item: makeItem(rollKind(), areaIlvl(e), rollRarity()) });
 }
 function spawnDrop(type, x, z, o) {
   const a = rng() * Math.PI * 2, sp = rrange(1.0, 2.6);

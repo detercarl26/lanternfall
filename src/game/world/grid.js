@@ -3,7 +3,7 @@
 
 import { rng, dist, turnToward } from '../../math.js';
 import { state } from '../state.js';
-import { WORLD, TOWN, FIELD, HOLLOW, RIDGE, GATE, PLAZA, MEMORIAL, SANCTUARY, WELL, SPAWN, CRYSTAL, FORGE, HALL, DOOR, LANTERN_WALL, PATH, MAZE_X0, CELL, MAZE_Z0, MAZE } from './floor1.js';
+import { WORLD, TOWN, FIELD, HOLLOW, RIDGE, GATE, PLAZA, MEMORIAL, SANCTUARY, WELL, SPAWN, CRYSTAL, STASH, FORGE, HALL, DOOR, LANTERN_WALL, PATH, MAZE_X0, CELL, MAZE_Z0, MAZE } from './floor1.js';
 import { inPlazaWay, TOWERS, HOUSES, STALLS, COLUMNS, TABLES, HEARTH, TREES, CYPRESS, HEDGES, LAMPS, FOLK } from './town.js';
 
 const GW = WORLD.x1 - WORLD.x0, GH = WORLD.z1 - WORLD.z0;
@@ -94,6 +94,7 @@ function carveTown() {
   }
   setCircle(PLAZA.x, PLAZA.z, 1.9, 1);
   setRect(CRYSTAL.x - 0.8, CRYSTAL.z - 0.8, CRYSTAL.x + 0.8, CRYSTAL.z + 0.8, 1);
+  setRect(STASH.x - 1, STASH.z - 0.5, STASH.x + 1, STASH.z + 0.5, 1);   // the strongbox
   // the Hall of Lanterns and the Sanctuary: walls with a door in the south side, and what stands inside
   houseWalls(MEMORIAL, 2);
   for (const x of [MEMORIAL.x0, MEMORIAL.x1]) for (const z of [MEMORIAL.z0, MEMORIAL.z1]) setCircle(x, z, 2.3, 1); // corner towers

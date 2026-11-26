@@ -22,17 +22,25 @@ function makeHero() {
     act: null, dodgeCd: 0, cd: { q: 0, e: 0, r: 0 }, sword: starterSword(), armor: starterArmor(),
     combatT: 99, dead: false, deathT: 0, target: null, mouseLock: false, stuckT: 0, haul: { gold: 0, items: [] },
     moving: 0, walkPhase: 0, hurtT: 0, red: 0, dmgMult: 1, crit: 0, skillDmg: 0, lifeHit: 0, atkSpeed: 1,
-    moveMult: 1, regen: 0, potionMult: 1, flags: {}, bag: [] };
+    moveMult: 1, regen: 0, potionMult: 1, flags: {}, bag: [], stash: [],
+    helm: null, amulet: null, ring1: null, ring2: null, gloves: null, belt: null, boots: null };
 }
+// Every slot that can be worn, as in SLOTS (inventory.js); listed here so the stats need no window layout
+const WORN = ['sword', 'helm', 'amulet', 'ring1', 'armor', 'ring2', 'gloves', 'belt', 'boots'];
 function starterSword() { return { id: 's1', slot: 'sword', name: 'Rusted Shortsword', base: 'Shortsword', rarity: 0, ilvl: 1, min: 4, max: 7, speed: 1.1, len: 0.85, affixes: {} }; }
 function starterArmor() { return { id: 's2', slot: 'armor', name: 'Frayed Coat', base: 'Coat', rarity: 0, ilvl: 1, hp: 8, red: 0.02, affixes: {} }; }
 function recalcHero() {
-  const h = state.hero, sw = h.sword, ar = h.armor, af = {};
-  for (const it of [sw, ar]) for (const k in it.affixes) af[k] = (af[k] || 0) + it.affixes[k];
+  const h = state.hero, sw = h.sword, ar = h.armor || {}, af = {};
+  let hp = 0, red = 0;
+  for (const key of WORN) {
+    const it = h[key]; if (!it) continue;
+    hp += it.hp || 0; red += it.red || 0;
+    for (const src of [it.affixes, it.implicit]) for (const k in src || {}) af[k] = (af[k] || 0) + src[k];
+  }
   const ratio = h.maxHp > 1 ? Math.max(0, h.hp) / h.maxHp : 1;
-  h.maxHp = Math.round(tune.heroHp + tune.heroHpPerLevel * (h.level - 1) + (ar.hp || 0) + (af.hpFlat || 0));
+  h.maxHp = Math.round(tune.heroHp + tune.heroHpPerLevel * (h.level - 1) + hp + (af.hpFlat || 0));
   if (!h.dead) h.hp = Math.min(h.maxHp, Math.max(1, Math.round(h.maxHp * ratio)));
-  h.red = Math.min(0.5, ar.red || 0);
+  h.red = Math.min(0.5, red);
   h.dmgMult = 1 + tune.heroDmgPerLevel * (h.level - 1);
   h.crit = tune.critChance + (af.crit || 0);
   h.skillDmg = af.skillDmg || 0; h.lifeHit = af.lifeHit || 0;

@@ -6,12 +6,14 @@ import { NUMS } from '../game/state.js';
 import { partyCount } from '../game/bots/roster.js';
 import { RCOL } from '../game/loot/items.js';
 import { inHollow } from '../game/world/grid.js';
+import { hasRoom } from '../game/inventory.js';
 import * as VIEW from '../render/view.js';
 
-const HOVER_Y = { item: 0.8, cache: 1.1, board: 3.0, crystal: 3.2, doorstone: 2.6, bot: 2.7 };
+const HOVER_Y = { item: 0.8, cache: 1.1, board: 3.0, stash: 1.6, crystal: 3.2, doorstone: 2.6, bot: 2.7 };
 function hoverText(s, hov) {
   if (hov.type === 'item') return lootHint(s);
   if (hov.type === 'cache') return 'Click to open the cache';
+  if (hov.type === 'stash') return 'Click to open your stash';
   if (hov.type === 'board') return 'Click to read the quest board';
   if (hov.type === 'crystal') return s.doorStone ? "Click to travel to the Warden's door" : 'The Waystone of Ashgate';
   if (hov.type === 'doorstone') return 'Click to travel back to Ashgate';
@@ -61,7 +63,8 @@ function damageNumbers(s) {
 function lootHint(s) {
   const h = s.hero;
   if (inHollow(h.x, h.z)) return 'Click to take it into your haul';
-  return h.bag.length >= tune.bagSize ? 'Your bag is full: press I to make room' : 'Click to put it in your bag';
+  const d = s.drops.find(q => s.ui.hover && q.id === s.ui.hover.id);
+  return d && d.item && !hasRoom('bag', d.item) ? 'No room in your bag: press I to make room' : 'Click to put it in your bag';
 }
 
 export { worldLabels, damageNumbers, lootHint };

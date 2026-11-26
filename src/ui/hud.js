@@ -22,7 +22,7 @@ function play(s) {
   if (!quiet) { worldLabels(s); damageNumbers(s); }
   partyFrames(party); minimap(s); tracker(s); chatBox(s); skillBar(s); stats(s); haulBox(s); bossBar(s); announceBox(s);
   if (s.ui.panel === 'board') boardPanel(s);
-  else if (s.ui.panel === 'inventory') inventoryPanel(s);
+  else if (s.ui.panel === 'inventory' || s.ui.panel === 'stash') inventoryPanel(s);
   else if (!h.dead) tooltip(s);
   deathOverlay(s);
 }

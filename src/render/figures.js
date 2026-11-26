@@ -136,12 +136,12 @@ function animHumanoid(rig, a) {
 const HERO = { skin: 0xc9a184, cloth: 0x2b2f38, pants: 0x24201c, trim: 0x7a6a50, hair: 0x1a1410, head: 'hair', weapon: 'sword', cape: 0x22324a };
 function hero() { const r = humanoid({ ...HERO, armorMat: COAT[0], bladeMat: BLADE[0] }); r.kind = 'hero'; return r; }
 function dressHero(rig, sword, armor) {
-  const key = sword.id + ':' + armor.id;
+  const key = sword.id + ':' + (armor ? armor.id : 'none');   // no body armour: the plain coat
   if (rig.gearKey === key) return;
   rig.gearKey = key;
   rig.blade.material = BLADE[sword.rarity] || BLADE[0];
   rig.bladePivot.scale.y = sword.len || 1;
-  rig.chest.material = COAT[armor.rarity] || COAT[0];
+  rig.chest.material = (armor && COAT[armor.rarity]) || COAT[0];
 }
 function bot(name, cls) {
   const c1 = hued(name, 0.4, 0.3), c2 = hued(name + 'x', 0.35, 0.22);
@@ -260,6 +260,21 @@ function groundItem(item) {
     part(g, BOX, glow, 0, 0.06, 0, 0.09, 0.03, 0.9 * (item.len || 1));
     part(g, BOX, M(0x6a5a40, { metal: 0.5 }), 0, 0.06, -0.48 * (item.len || 1), 0.3, 0.04, 0.06);
     part(g, CYL, M(0x2a1f17), 0, 0.06, -0.62 * (item.len || 1), 0.035, 0.22, 0.035, Math.PI / 2, 0, 0);
+  } else if (item.slot === 'helm') {
+    part(g, SPH, item.rarity ? glow : COAT[0], 0, 0.1, 0, 0.24, 0.2, 0.26);
+    part(g, BOX, M(0x1a1816), 0, 0.14, 0.2, 0.2, 0.03, 0.05);
+  } else if (item.slot === 'gloves' || item.slot === 'boots') {
+    const boot = item.slot === 'boots';
+    for (const s of [-1, 1]) {
+      part(g, BOX, item.rarity ? glow : COAT[0], s * 0.14, 0.07, 0, 0.14, 0.14, boot ? 0.22 : 0.16);
+      part(g, BOX, M(0x3a2a1c), s * 0.14, 0.06, boot ? 0.16 : 0.12, 0.13, 0.1, boot ? 0.14 : 0.1);
+    }
+  } else if (item.slot === 'belt') {
+    part(g, BOX, M(0x4a3424), 0, 0.03, 0, 0.6, 0.04, 0.1);
+    part(g, BOX, glow, 0, 0.05, 0, 0.12, 0.05, 0.14);
+  } else if (item.slot === 'ring' || item.slot === 'amulet') {
+    part(g, SPH, glow, 0, 0.08, 0, 0.09, 0.09, 0.09);
+    if (item.slot === 'amulet') part(g, BOX, M(0x8a7a5a, { metal: 0.6 }), 0, 0.02, -0.18, 0.02, 0.02, 0.3);
   } else {
     part(g, cap(0.2, 0.22), item.rarity ? glow : COAT[0], 0, 0.14, 0, 1, 0.7, 0.55, Math.PI / 2, 0, 0);
     for (const s of [-1, 1]) part(g, SPH, glow, s * 0.24, 0.12, -0.18, 0.1, 0.07, 0.1);

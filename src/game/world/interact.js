@@ -5,12 +5,12 @@ import { tune } from '../../config.js';
 import { dist } from '../../math.js';
 import { emit, state } from '../state.js';
 import { sfx } from '../../audio/sfx.js';
-import { SPAWN, CRYSTAL, BOARD, DOORSTONE, AREA_INFO } from './floor1.js';
+import { SPAWN, CRYSTAL, BOARD, STASH, DOORSTONE, AREA_INFO } from './floor1.js';
 import { openCache, bankHaul } from '../hollow.js';
 import { travel } from '../hero/hero.js';
 import { chat, announce } from '../chat.js';
 import { areaAt } from './grid.js';
-import { addToInventory } from '../inventory.js';
+import { addToInventory, openStash } from '../inventory.js';
 import { recruit } from '../bots/party.js';
 import { startBossFight, endFloor } from '../warden.js';
 import { saveGame } from '../save.js';
@@ -22,6 +22,7 @@ function findHover(aim) {
   for (const d of s.drops) if (d.settled && d.type !== 'gold') consider(d.type, d.id, d.x, d.z, 1.1);
   consider('board', 0, BOARD.x, BOARD.z, 1.8);
   consider('crystal', 0, CRYSTAL.x, CRYSTAL.z, 1.4);
+  consider('stash', 0, STASH.x, STASH.z, 1.4);
   if (s.doorStone) consider('doorstone', 0, DOORSTONE.x, DOORSTONE.z, 1.4);
   for (const b of s.bots) if (b.alive && recruitable(b)) consider('bot', b.id, b.x, b.z, 0.9);
   return best;
@@ -32,6 +33,7 @@ function resolveHover(t) {
   if (t.type === 'item' || t.type === 'cache') { const d = s.drops.find(q => q.id === t.id); return d ? { type: t.type, x: d.x, z: d.z, reach: tune.pickupReach, drop: d } : null; }
   if (t.type === 'bot') { const b = s.bots.find(q => q.id === t.id); return b && b.alive && recruitable(b) ? { type: 'bot', x: b.x, z: b.z, reach: 2.4, bot: b } : null; }
   if (t.type === 'board') return { type: 'board', x: BOARD.x, z: BOARD.z + 1.4, reach: 1.6 };
+  if (t.type === 'stash') return { type: 'stash', x: STASH.x, z: STASH.z - 1.2, reach: 1.4 };
   if (t.type === 'crystal') return { type: 'crystal', x: CRYSTAL.x, z: CRYSTAL.z + 1.5, reach: 1.6 };
   if (t.type === 'doorstone') return { type: 'doorstone', x: DOORSTONE.x, z: DOORSTONE.z + 1.5, reach: 1.8 };
   return null;
@@ -40,6 +42,7 @@ function interact(t) {
   const s = state;
   if (t.type === 'item') addToInventory(t.drop);
   else if (t.type === 'cache') openCache(t.drop);
+  else if (t.type === 'stash') openStash();
   else if (t.type === 'board') { s.ui.panel = 'board'; sfx.click(); emit({ type: 'board' }); }
   else if (t.type === 'crystal') {
     if (s.doorStone) travel(DOORSTONE.x - 2, DOORSTONE.z + 1.5);

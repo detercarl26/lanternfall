@@ -12,7 +12,7 @@ import { announce } from '../chat.js';
 import { moveEnt, placeNear } from '../world/grid.js';
 import { startSwing, startRoll, trySkill, stepHeroAct } from './sword.js';
 import { findHover, resolveHover, interact } from '../world/interact.js';
-import { bagSlotAt, equipFromBag, dropFromBag } from '../inventory.js';
+import { invOpen, invClick, invRightClick, updateInventory } from '../inventory.js';
 import { resetBoss } from '../warden.js';
 import { saveGame } from '../save.js';
 import * as VIEW from '../../render/view.js';
@@ -20,6 +20,7 @@ import * as VIEW from '../../render/view.js';
 function updateHero(dt) {
   const s = state, h = s.hero;
   h.px = h.x; h.pz = h.z;
+  updateInventory();
   if (h.dead) { h.deathT += dt; if (h.deathT >= 2.6) respawnHero(); return; }
   h.dodgeCd = Math.max(0, h.dodgeCd - dt); h.hurtT = Math.max(0, h.hurtT - dt); h.combatT += dt;
   for (const k in h.cd) h.cd[k] = Math.max(0, h.cd[k] - dt);
@@ -36,13 +37,13 @@ function updateHero(dt) {
   if (held('KeyA') || held('ArrowLeft')) mx -= 1;
   if (held('KeyD') || held('ArrowRight')) mx += 1;
   if (mx || mz) h.target = null;
-  if (pressed('KeyI')) { s.ui.panel = s.ui.panel === 'inventory' ? null : 'inventory'; h.target = null; } // the bag stops a walk to something
+  if (pressed('KeyI')) { s.ui.panel = invOpen() ? null : 'inventory'; h.target = null; } // the bag stops a walk to something
   if (pressed('Mouse0')) {
-    if (s.ui.panel === 'inventory') { const i = bagSlotAt(mouse.x, mouse.y); if (i >= 0) equipFromBag(i); h.mouseLock = true; }
+    if (invOpen()) { invClick(mouse.x, mouse.y); h.mouseLock = true; }
     else if (s.ui.panel) { s.ui.panel = null; h.mouseLock = true; }
     else if (hov) { h.target = { type: hov.type, id: hov.id }; h.mouseLock = true; sfx.click(); }
   }
-  if (pressed('Mouse2') && s.ui.panel === 'inventory') { const i = bagSlotAt(mouse.x, mouse.y); if (i >= 0) dropFromBag(i); }
+  if (pressed('Mouse2') && invOpen()) invRightClick(mouse.x, mouse.y);
   const a = h.act, landed = a && a.type !== 'roll' && a.t >= a.hitAt;
   const aimAng = aim ? Math.atan2(aim.x - h.x, aim.z - h.z) : h.face;
   if (pressed('Space') && h.dodgeCd <= 0 && (!a || landed)) startRoll(mx, mz, aimAng);
