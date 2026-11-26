@@ -63,6 +63,12 @@ function icon(id, cx, cy, alpha) {
   else if (id === 'r') { ctx.fillStyle = C.cyan; ctx.beginPath(); ctx.arc(cx - 3, cy, 14, -1.25, 1.25); ctx.arc(cx - 10, cy, 11, 1.05, -1.05, true); ctx.closePath(); ctx.fill(); }
   else if (id === 'dodge') { ctx.strokeStyle = '#d8d0c0'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(cx, cy + 3, 11, Math.PI * 1.05, Math.PI * 1.95); ctx.stroke(); tri(cx + 11, cy + 1, 5, 1.4, '#d8d0c0'); ctx.lineWidth = 2; line(cx - 14, cy + 9, cx - 6, cy + 9); }
   else if (id === 'potion') { ctx.fillStyle = '#b8322a'; ctx.beginPath(); ctx.arc(cx, cy + 4, 10, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#d8cfc0'; ctx.fillRect(cx - 3, cy - 12, 6, 8); ctx.fillStyle = '#6a4a2a'; ctx.fillRect(cx - 4, cy - 14, 8, 3); ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.beginPath(); ctx.arc(cx - 3, cy + 1, 3, 0, Math.PI * 2); ctx.fill(); }
+  else if (id === 'coat') {
+    ctx.fillStyle = '#8a7a5c'; ctx.strokeStyle = '#d8cfc0'; ctx.lineWidth = 2; ctx.beginPath();
+    ctx.moveTo(cx - 6, cy - 13); ctx.lineTo(cx + 6, cy - 13); ctx.lineTo(cx + 14, cy - 6); ctx.lineTo(cx + 10, cy + 1); ctx.lineTo(cx + 8, cy - 1);
+    ctx.lineTo(cx + 8, cy + 13); ctx.lineTo(cx - 8, cy + 13); ctx.lineTo(cx - 8, cy - 1); ctx.lineTo(cx - 10, cy + 1); ctx.lineTo(cx - 14, cy - 6);
+    ctx.closePath(); ctx.fill(); ctx.stroke(); line(cx, cy - 13, cx, cy + 13);
+  }
   ctx.restore();
 }
 function classIcon(cls, x, y) {

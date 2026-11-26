@@ -36,7 +36,7 @@ function updateHero(dt) {
   if (held('KeyA') || held('ArrowLeft')) mx -= 1;
   if (held('KeyD') || held('ArrowRight')) mx += 1;
   if (mx || mz) h.target = null;
-  if (pressed('KeyI')) s.ui.panel = s.ui.panel === 'inventory' ? null : 'inventory';
+  if (pressed('KeyI')) { s.ui.panel = s.ui.panel === 'inventory' ? null : 'inventory'; h.target = null; } // the bag stops a walk to something
   if (pressed('Mouse0')) {
     if (s.ui.panel === 'inventory') { const i = bagSlotAt(mouse.x, mouse.y); if (i >= 0) equipFromBag(i); h.mouseLock = true; }
     else if (s.ui.panel) { s.ui.panel = null; h.mouseLock = true; }

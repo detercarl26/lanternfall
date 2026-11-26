@@ -10,13 +10,13 @@ import { inHollow } from './world/grid.js';
 import { placeItem } from './loot/drops.js';
 import { saveGame } from './save.js';
 
-const BAG = { x: 440, y: 110, cols: 5, size: 64, gap: 8 };   // where the window sits on screen
+const BAG = { x: 864, y: 110, cols: 5, size: 64, gap: 8 };   // the bag window, at the right edge so the hero at the centre stays in view
 function bagSlotRect(i) {
   const c = i % BAG.cols, r = Math.floor(i / BAG.cols);
   return { x: BAG.x + 24 + c * (BAG.size + BAG.gap), y: BAG.y + 130 + r * (BAG.size + BAG.gap), w: BAG.size, h: BAG.size };
 }
 function bagSlotAt(mx, my) {
-  for (let i = 0; i < tune.bagSize; i++) { const r = bagSlotRect(i); if (mx >= r.x && mx < r.x + r.w && my >= r.y && my < r.y + r.h) return i; }
+  for (let i = 0; i < bagSlots(); i++) { const r = bagSlotRect(i); if (mx >= r.x && mx < r.x + r.w && my >= r.y && my < r.y + r.h) return i; }
   return -1;
 }
 function equipFromBag(i) {
@@ -28,7 +28,7 @@ function equipFromBag(i) {
 function dropFromBag(i) {
   const h = state.hero, it = h.bag.splice(i, 1)[0]; if (!it) return;
   placeItem(it, h.x + 1, h.z);
-  sfx.click(); saveGame();
+  sfx.click(); chat('', `Dropped ${it.name}.`, 'sys'); saveGame();
 }
 
 function addToInventory(d) {
@@ -37,7 +37,11 @@ function addToInventory(d) {
   if (h.bag.length >= tune.bagSize) { chat('', 'Your bag is full. Press I and drop something.', 'warn'); return; }
   s.drops.splice(s.drops.indexOf(d), 1);
   h.bag.push(it);
-  sfx.click(); chat('', `${it.name} goes into your bag.`, 'sys'); saveGame();
+  sfx.click(); chat('', `${it.name} goes into your bag. Press I to wear it.`, 'sys'); saveGame();
 }
 
-export { BAG, bagSlotRect, bagSlotAt, equipFromBag, dropFromBag, addToInventory };
+// ---- The save: this browser keeps your hero, your party and who has fallen -------------------
+// How many bag slots to show: the bag's size, or more when a lowered bagSize leaves items past it
+function bagSlots() { return Math.max(tune.bagSize, state.hero.bag.length); }
+
+export { BAG, bagSlotRect, bagSlotAt, equipFromBag, dropFromBag, addToInventory, bagSlots };

@@ -11,7 +11,7 @@ const CONTROLS = [
   'Left click: swing, pick up loot, talk to players',
   'Q / E / R: sword skills (they unlock as you level)',
   'Space: dodge roll    F: drink a potion',
-  'Mouse wheel: zoom    P: pause    M: mute',
+  'Mouse wheel: zoom    I: bag    P: pause    M: mute',
 ];
 
 // ---- Input: keys by position (event.code), OS key repeat ignored; the mouse aims -----------
@@ -29,7 +29,17 @@ function trackMouse(e) {
   mouse.x = (e.clientX - viewLeft) / viewScale; mouse.y = (e.clientY - viewTop) / viewScale;
   mouse.inside = mouse.x >= 0 && mouse.y >= 0 && mouse.x <= W && mouse.y <= H;
 }
-addEventListener('pointermove', trackMouse);
+addEventListener('pointermove', e => {
+  trackMouse(e);
+  // A button pressed or released while another is held (a chord) arrives as a pointermove whose
+  // button names the one that changed, never as its own pointerdown or pointerup: without this a
+  // right click during a held swing was lost, and letting go of the left button could leave it
+  // stuck down. A plain move has button -1.
+  if (e.button >= 0) {
+    const code = 'Mouse' + e.button, bit = [1, 4, 2][e.button];
+    if (e.buttons & bit) { if (!down.has(code)) { down.add(code); hit.add(code); } } else down.delete(code);
+  }
+});
 addEventListener('pointerdown', e => {
   startAudio(); trackMouse(e);
   const code = 'Mouse' + e.button; down.add(code); hit.add(code);

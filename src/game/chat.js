@@ -7,7 +7,7 @@ const CHAT_LINES = [
   'anyone up for the Warden? need a healer',
   'LFG east field, wolves',
   'the Warden flattened my whole party yesterday',
-  'stay out of the Red Hollow unless you want to lose your bag',
+  'stay out of the Red Hollow unless you want to lose your haul',
   'selling a blue sabre, 40 gold',
   'does anyone know what floor 2 looks like',
   'dodge the red lines. seriously.',

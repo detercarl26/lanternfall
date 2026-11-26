@@ -10,8 +10,7 @@ import * as VIEW from '../render/view.js';
 
 const HOVER_Y = { item: 0.8, cache: 1.1, board: 3.0, crystal: 3.2, doorstone: 2.6, bot: 2.7 };
 function hoverText(s, hov) {
-  const inH = inHollow(s.hero.x, s.hero.z);
-  if (hov.type === 'item') return inH ? 'Click to take it into your haul' : 'Click to equip';
+  if (hov.type === 'item') return lootHint(s);
   if (hov.type === 'cache') return 'Click to open the cache';
   if (hov.type === 'board') return 'Click to read the quest board';
   if (hov.type === 'crystal') return s.doorStone ? "Click to travel to the Warden's door" : 'The Waystone of Ashgate';
@@ -57,4 +56,12 @@ function damageNumbers(s) {
   }
 }
 
-export { worldLabels, damageNumbers };
+// ---- Screens ----
+// The hint over ground loot, in the order addToInventory decides: the Hollow first, then a full bag
+function lootHint(s) {
+  const h = s.hero;
+  if (inHollow(h.x, h.z)) return 'Click to take it into your haul';
+  return h.bag.length >= tune.bagSize ? 'Your bag is full: press I to make room' : 'Click to put it in your bag';
+}
+
+export { worldLabels, damageNumbers, lootHint };
